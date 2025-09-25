@@ -1,7 +1,7 @@
-const { Hono } = require("hono");
-const { env } = require("hono/adapter");
-const Stripe = require("stripe");
-const OpenAI = require("openai");
+import { Hono } from "hono";
+import { env } from "hono/adapter";
+import Stripe from "stripe";
+import OpenAI from "openai";
 
 const app = new Hono();
 
