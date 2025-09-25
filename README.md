@@ -23,13 +23,17 @@ Rename and move the `.dev.vars.example` file into a file named `.dev.vars`. For 
 cp .dev.vars.example .dev.vars
 ```
 
-Example .env file:
+Update the file with your test credentials:
 
 ```
 STRIPE_API_KEY='sk_test_xxx'
+OPENAI_API_KEY='sk-test_xxx'
+STRIPE_WEBHOOK_SECRET='whsec_xxx' # optional unless you enable webhooks
 ```
 
 You will need a Stripe account in order to run the demo. Once you set up your account, go to the Stripe [developer dashboard](https://stripe.com/docs/development#api-keys) to find your API keys.
+
+You will also need an OpenAI API key with access to the Images API. Create one from the [OpenAI dashboard](https://platform.openai.com/api-keys) and use it in your `.dev.vars`. The worker uses it to transform the uploaded pet photo after checkout.
 
 Finally, you can run this example by the following command:
 
