@@ -127,53 +127,65 @@ app.get("/", (context) => {
       <title>Royal Pet Portrait Studio</title>
       <style>
         :root { color-scheme: light dark; }
+        body { font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 0; padding: 0; background: radial-gradient(circle at top, #eef2ff 0%, #f6f9fc 35%, #fdfdfd 100%); color: #0a2540; min-height: 100vh; display: grid; }
+        main { position: relative; z-index: 1; max-width: 960px; margin: auto; padding: 96px 24px; display: grid; gap: 32px; text-align: center; }
+        body::before { content: ""; position: fixed; inset: 0; pointer-events: none; background: radial-gradient(ellipse at top right, rgba(99,91,255,0.16), transparent 55%), radial-gradient(ellipse at bottom left, rgba(34,197,94,0.12), transparent 60%); z-index: 0; }
+        h1 { font-size: clamp(3rem, 6vw, 4.5rem); margin: 0; line-height: 1.05; letter-spacing: -0.035em; }
+        p { margin: 0 auto; max-width: 600px; font-size: 1.2rem; color: #46556a; }
+        .cta-group { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+        a.cta-primary, a.cta-secondary { display: inline-flex; align-items: center; justify-content: center; padding: 16px 32px; border-radius: 999px; text-decoration: none; font-weight: 600; font-size: 1rem; transition: transform 0.15s ease, box-shadow 0.15s ease, border 0.15s ease; }
+        a.cta-primary { background: linear-gradient(120deg, #635bff, #22c55e); color: #fff; box-shadow: 0 24px 60px -34px rgba(99,91,255,0.9); }
+        a.cta-primary:hover { transform: translateY(-2px); box-shadow: 0 28px 80px -36px rgba(99,91,255,0.95); }
+        a.cta-secondary { border: 1px solid rgba(99,91,255,0.25); color: #0a2540; background: rgba(255,255,255,0.7); backdrop-filter: blur(12px); }
+        a.cta-secondary:hover { transform: translateY(-1px); border-color: rgba(99,91,255,0.45); }
+        footer { font-size: 0.9rem; color: #5a6a8c; }
+      </style>
+    </head>
+    <body>
+      <main>
+        <span style="display:inline-flex; align-items:center; gap:8px; justify-content:center; font-weight:600; color:#4f5d7a; background:rgba(255,255,255,0.65); border:1px solid rgba(99,91,255,0.25); padding:10px 18px; border-radius:999px; width:max-content; margin:0 auto;">Limited beta · AI-crafted pet portraits in under 5 minutes</span>
+        <h1>Turn your pet into a regal, frame-worthy portrait</h1>
+        <p>Select your favorite art styles, pay securely with Stripe, then upload a photo to watch OpenAI craft bespoke masterpieces for every style you choose.</p>
+        <div class="cta-group">
+          <a class="cta-primary" href="/order">Start your portrait</a>
+          <a class="cta-secondary" href="/order">See styles & pricing</a>
+        </div>
+        <footer>Built with Stripe Checkout, OpenAI Images, and Cloudflare Workers · © ${new Date().getFullYear()} Royal Pet Portrait Studio</footer>
+      </main>
+    </body>
+  </html>`;
+
+  return context.html(html);
+});
+
+app.get("/order", (context) => {
+  const html = `<!DOCTYPE html>
+  <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Choose Your Portrait Package</title>
+      <style>
+        :root { color-scheme: light dark; }
         body { font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 0; padding: 0; background: radial-gradient(circle at top, #eef2ff 0%, #f6f9fc 35%, #fdfdfd 100%); color: #0a2540; }
         body::before { content: ""; position: fixed; inset: 0; pointer-events: none; background: radial-gradient(ellipse at top right, rgba(99,91,255,0.16), transparent 55%), radial-gradient(ellipse at bottom left, rgba(34,197,94,0.08), transparent 60%); z-index: 0; }
-        a { color: inherit; }
-        main { position: relative; z-index: 1; max-width: 1080px; margin: 0 auto; padding: 64px 24px 120px; display: grid; gap: 72px; }
-        header { display: grid; gap: 32px; text-align: center; }
-        header h1 { font-size: clamp(2.8rem, 4vw, 4rem); margin: 0; line-height: 1.05; letter-spacing: -0.03em; }
-        header p { margin: 0 auto; max-width: 720px; font-size: 1.15rem; color: #425466; }
-        header .cta-group { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
-        .cta-primary { padding: 14px 28px; border-radius: 999px; border: none; background: linear-gradient(120deg, #635bff, #22c55e); color: #fff; font-weight: 600; cursor: pointer; font-size: 1rem; box-shadow: 0 18px 40px -24px rgba(99,91,255,0.8); transition: transform 0.15s ease, box-shadow 0.15s ease; }
-        .cta-primary:hover { transform: translateY(-2px); box-shadow: 0 25px 60px -30px rgba(99,91,255,0.85); }
-        .cta-secondary { border-radius: 999px; padding: 12px 26px; border: 1px solid rgba(99,91,255,0.2); background: rgba(255,255,255,0.6); font-weight: 600; color: #0a2540; backdrop-filter: blur(12px); cursor: pointer; transition: border 0.15s ease, transform 0.15s ease; }
-        .cta-secondary:hover { border-color: rgba(99,91,255,0.4); transform: translateY(-1px); }
-        .hero-preview { display: grid; gap: 24px; background: rgba(255,255,255,0.78); border-radius: 24px; padding: 28px; border: 1px solid rgba(99,91,255,0.18); box-shadow: 0 40px 80px -48px rgba(15,37,64,0.35); backdrop-filter: blur(22px); max-width: 880px; margin: 0 auto; text-align: left; }
-        .hero-preview h2 { margin: 0; font-size: 1.5rem; }
-        .pill-list { display: flex; flex-wrap: wrap; gap: 8px; }
-        .pill { padding: 8px 14px; border-radius: 999px; background: rgba(99,91,255,0.12); color: #333b66; font-size: 0.9rem; font-weight: 500; }
-        section { display: grid; gap: 24px; }
-        .section-title { font-size: clamp(1.8rem, 2.6vw, 2.4rem); margin: 0; text-align: center; }
-        .features-grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
-        .feature-card { border-radius: 20px; padding: 22px; background: rgba(255,255,255,0.85); border: 1px solid rgba(15,37,64,0.08); box-shadow: 0 18px 44px -32px rgba(15,37,64,0.28); display: grid; gap: 12px; }
-        .feature-card strong { font-size: 1.05rem; }
-        .feature-card p { margin: 0; color: #46556a; font-size: 0.96rem; }
-        .pricing-band { border-radius: 24px; padding: 32px; background: linear-gradient(120deg, rgba(99,91,255,0.12), rgba(99,91,255,0.22)); display: grid; gap: 12px; text-align: center; border: 1px solid rgba(99,91,255,0.18); }
-        .pricing-band h3 { margin: 0; font-size: 1.4rem; }
-        .pricing-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
-        .price-card { padding: 18px; border-radius: 18px; background: rgba(255,255,255,0.88); border: 1px solid rgba(99,91,255,0.16); display: grid; gap: 6px; }
-        .price-card span:first-child { font-weight: 600; color: #0a2540; }
-        .price-card span:last-child { color: #46556a; font-size: 0.9rem; }
-        .order-section { display: grid; gap: 32px; }
-        .order-shell { display: grid; gap: 24px; background: rgba(255,255,255,0.92); border-radius: 24px; padding: 32px; border: 1px solid rgba(15,37,64,0.1); box-shadow: 0 40px 80px -48px rgba(15,37,64,0.35); backdrop-filter: blur(16px); }
-        .order-shell h2 { margin: 0; font-size: clamp(2rem, 2.4vw, 2.4rem); }
-        .order-shell p { margin: 0; color: #46556a; font-size: 1rem; }
-        .form-grid { display: grid; gap: 24px; }
+        main { position: relative; z-index: 1; max-width: 960px; margin: 0 auto; padding: 72px 24px 96px; display: grid; gap: 40px; }
+        header { display: grid; gap: 12px; text-align: center; }
+        header h1 { margin: 0; font-size: clamp(2.4rem, 3.4vw, 3.2rem); letter-spacing: -0.03em; }
+        header p { margin: 0 auto; max-width: 640px; color: #46556a; }
+        .order-shell { display: grid; gap: 24px; background: rgba(255,255,255,0.9); border-radius: 24px; padding: 32px; border: 1px solid rgba(15,37,64,0.1); box-shadow: 0 40px 80px -48px rgba(15,37,64,0.35); backdrop-filter: blur(16px); }
         form { display: grid; gap: 18px; }
-        label { display: grid; gap: 8px; font-weight: 600; color: #192c54; }
-        input[type="text"], input[type="email"], input[type="file"] { font: inherit; padding: 12px 14px; border: 1px solid rgba(15,37,64,0.12); border-radius: 12px; background: rgba(255,255,255,0.9); }
-        input[type="file"] { padding: 6px; }
+        label { display: grid; gap: 6px; font-weight: 600; color: #192c54; }
+        input[type="text"], input[type="email"] { font: inherit; padding: 12px 14px; border: 1px solid rgba(15,37,64,0.12); border-radius: 12px; background: rgba(255,255,255,0.92); }
         fieldset { border: none; margin: 0; padding: 0; display: grid; gap: 14px; }
         legend { font-weight: 700; font-size: 1rem; color: #0a2540; }
         .styles-grid { display: grid; gap: 12px; }
         @media (min-width: 640px) { .styles-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-        .style-card { display: flex; align-items: flex-start; gap: 12px; padding: 14px; border: 1px solid rgba(15,37,64,0.1); border-radius: 16px; background: rgba(248,249,255,0.9); transition: border 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease; }
+        .style-card { display: flex; gap: 12px; align-items: flex-start; padding: 14px; border-radius: 16px; border: 1px solid rgba(15,37,64,0.1); background: rgba(248,249,255,0.9); transition: border 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease; }
         .style-card:hover { border-color: rgba(99,91,255,0.65); box-shadow: 0 24px 48px -36px rgba(99,91,255,0.65); transform: translateY(-1px); }
         .style-card input { margin-top: 4px; }
-        .style-card span { display: block; }
         .style-card span:first-child { font-weight: 600; color: #192c54; }
-        .style-description { font-weight: 400; color: #4d5d80; font-size: 0.92rem; margin-top: 4px; }
+        .style-description { color: #4d5d80; font-size: 0.92rem; margin-top: 4px; }
         .delivery-options { display: grid; gap: 12px; }
         @media (min-width: 640px) { .delivery-options { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
         .delivery-card { display: flex; gap: 12px; align-items: center; padding: 16px; border-radius: 16px; border: 1px solid rgba(15,37,64,0.1); background: rgba(249,250,255,0.95); transition: border 0.15s ease, box-shadow 0.15s ease; }
@@ -189,182 +201,101 @@ app.get("/", (context) => {
         button:disabled { opacity: .6; cursor: not-allowed; transform: none; box-shadow: none; }
         #status { min-height: 24px; color: #e44c4c; font-weight: 600; }
         #status.success { color: #0a8340; }
-        #image-preview { width: 100%; max-height: 260px; object-fit: cover; border-radius: 16px; border: 1px dashed rgba(99,91,255,0.3); padding: 8px; display: none; background: rgba(246,248,255,0.9); }
-        footer { text-align: center; color: #5a6a8c; font-size: 0.9rem; }
-        footer a { color: #4d5dff; }
-        @media (max-width: 720px) {
-          main { padding: 48px 20px 96px; gap: 56px; }
-          .hero-preview { padding: 24px; }
-          .order-shell { padding: 24px; }
-        }
+        a.back-link { color: #4d5dff; text-decoration: none; font-weight: 600; }
+        a.back-link:hover { text-decoration: underline; }
       </style>
     </head>
     <body>
       <main>
         <header>
-          <span style="display:inline-flex; align-items:center; gap:8px; justify-content:center; font-weight:600; color:#4f5d7a; background:rgba(255,255,255,0.6); border:1px solid rgba(99,91,255,0.2); padding:8px 16px; border-radius:999px; width:max-content; margin:0 auto;">Limited beta · AI-crafted pet portraits in under 5 minutes</span>
-          <h1>Elevate your pet into a royal masterpiece</h1>
-          <p>Inspired by Stack Auth’s clean aesthetic, our studio transforms your pet into museum-worthy artwork. Choose the styles you love, pay securely with Stripe, and receive digital or framed keepsakes crafted with OpenAI.</p>
-          <div class="cta-group">
-            <button class="cta-primary" data-scroll-to-form>Start Your Portrait</button>
-            <button class="cta-secondary" data-scroll-to-form>See pricing & styles</button>
-          </div>
-          <div class="hero-preview">
-            <h2>What’s included</h2>
-            <div class="pill-list">
-              <span class="pill">Up to 5 distinct art directions</span>
-              <span class="pill">High-res 1024×1024 PNGs</span>
-              <span class="pill">Ultra-fast AI rendering</span>
-              <span class="pill">Optional framed delivery</span>
-              <span class="pill">Secure Stripe checkout</span>
-            </div>
-            <p style="margin:0; color:#4b5c7d;">“It felt like ordering from a polished SaaS dashboard, but for pets. The framed version arrived looking like a real gallery piece.” — Casey R.</p>
-          </div>
+          <a class="back-link" href="/">← Back to overview</a>
+          <h1>Tell us about your pet portrait</h1>
+          <p>Select the art directions you’d like us to render and pick how you want to receive them. You’ll upload the photo after checkout.</p>
         </header>
-
-        <section>
-          <h2 class="section-title">Why pet parents love our studio</h2>
-          <div class="features-grid">
-            <div class="feature-card">
-              <strong>Seamless experience</strong>
-              <p>A single flow inspired by modern dashboards: share your details, pay, upload, and review every style in one place.</p>
-            </div>
-            <div class="feature-card">
-              <strong>Styles that resonate</strong>
-              <p>From royal regalia to minimalist line art, each preset has handcrafted prompt engineering to deliver consistent magic.</p>
-            </div>
-            <div class="feature-card">
-              <strong>Flexible delivery</strong>
-              <p>Instant digital downloads for just $4.99 per style, plus premium framed prints shipped to your door for $24.99 per style.</p>
-            </div>
-            <div class="feature-card">
-              <strong>Fast, secure checkout</strong>
-              <p>Built on Stripe Checkout with retry protection and webhook validation, so your payment is safe and smooth.</p>
-            </div>
+        <section class="order-shell">
+          <div id="order-summary" hidden>
+            <span id="summary-styles"></span>
+            <span id="summary-delivery"></span>
+            <span id="summary-total"></span>
           </div>
-        </section>
-
-        <section class="pricing-band">
-          <h3>Transparent pricing that scales with your imagination</h3>
-          <p style="margin:0; color:#16294f;">Select as many styles as you want—each one is rendered separately so you can download or frame favorites.</p>
-          <div class="pricing-grid">
-            <div class="price-card">
-              <span>Digital download</span>
-              <span>$4.99 per style · Instant PNG delivery</span>
-            </div>
-            <div class="price-card">
-              <span>Framed print</span>
-              <span>$24.99 per style · 12"×16" gallery frame</span>
-            </div>
-            <div class="price-card">
-              <span>Style expansion</span>
-              <span>Realistic, royal, pop-art, minimalist, and fantasy presets included</span>
-            </div>
-          </div>
-        </section>
-
-        <section class="order-section" id="order">
-          <div class="order-shell">
-            <div style="display:grid; gap:12px;">
-              <h2>Your portrait request</h2>
-              <p>Tell us who we’re creating for, choose every art direction you want, and decide whether you’d like digital files, framed keepsakes, or both. You’ll upload the photo after checkout.</p>
-            </div>
-            <div class="form-grid">
-              <div id="order-summary" hidden>
-                <span id="summary-styles"></span>
-                <span id="summary-delivery"></span>
-                <span id="summary-total"></span>
+          <form id="order-form">
+            <label>
+              First name
+              <input type="text" name="firstName" autocomplete="given-name" required />
+            </label>
+            <label>
+              Last name
+              <input type="text" name="lastName" autocomplete="family-name" required />
+            </label>
+            <label>
+              Email address
+              <input type="email" name="email" autocomplete="email" required />
+            </label>
+            <fieldset>
+              <legend>Choose your portrait styles</legend>
+              <div class="styles-grid">
+                <label class="style-card">
+                  <input type="checkbox" name="styles" value="realistic-painted" checked />
+                  <div>
+                    <span>Realistic Painted Portrait 🎨</span>
+                    <span class="style-description">Classic oil/acrylic realism with dramatic lighting.</span>
+                  </div>
+                </label>
+                <label class="style-card">
+                  <input type="checkbox" name="styles" value="royal-costume" />
+                  <div>
+                    <span>Royal / Costume Portrait 👑</span>
+                    <span class="style-description">Dress your pet like a ruler, general, or folk hero.</span>
+                  </div>
+                </label>
+                <label class="style-card">
+                  <input type="checkbox" name="styles" value="cartoon-pop" />
+                  <div>
+                    <span>Cartoon & Pop Art 🐾</span>
+                    <span class="style-description">Bold colors, comic outlines, and vibrant energy.</span>
+                  </div>
+                </label>
+                <label class="style-card">
+                  <input type="checkbox" name="styles" value="minimalist-line" />
+                  <div>
+                    <span>Minimalist Line Art ✍️</span>
+                    <span class="style-description">Elegant single-line illustration for modern spaces.</span>
+                  </div>
+                </label>
+                <label class="style-card">
+                  <input type="checkbox" name="styles" value="fantasy-whimsical" />
+                  <div>
+                    <span>Fantasy & Whimsical 🌌</span>
+                    <span class="style-description">Magical settings that turn pets into legends.</span>
+                  </div>
+                </label>
               </div>
-              <form id="order-form">
-                <label>
-                  First name
-                  <input type="text" name="firstName" id="first-name" autocomplete="given-name" required />
-                </label>
-                <label>
-                  Last name
-                  <input type="text" name="lastName" id="last-name" autocomplete="family-name" required />
-                </label>
-                <label>
-                  Email address
-                  <input type="email" name="email" id="email" autocomplete="email" required />
-                </label>
-                <fieldset>
-                  <legend>Choose your portrait styles</legend>
-                  <div class="styles-grid">
-                    <label class="style-card">
-                      <input type="checkbox" name="styles" value="realistic-painted" checked />
-                      <div>
-                        <span>Realistic Painted Portrait 🎨</span>
-                        <span class="style-description">Classic oil/acrylic realism with dramatic lighting.</span>
-                      </div>
-                    </label>
-                    <label class="style-card">
-                      <input type="checkbox" name="styles" value="royal-costume" />
-                      <div>
-                        <span>Royal / Costume Portrait 👑</span>
-                        <span class="style-description">Dress your pet like a ruler, general, or folk hero.</span>
-                      </div>
-                    </label>
-                    <label class="style-card">
-                      <input type="checkbox" name="styles" value="cartoon-pop" />
-                      <div>
-                        <span>Cartoon & Pop Art 🐾</span>
-                        <span class="style-description">Bold colors, comic outlines, and vibrant energy.</span>
-                      </div>
-                    </label>
-                    <label class="style-card">
-                      <input type="checkbox" name="styles" value="minimalist-line" />
-                      <div>
-                        <span>Minimalist Line Art ✍️</span>
-                        <span class="style-description">Elegant single-line illustration for modern spaces.</span>
-                      </div>
-                    </label>
-                    <label class="style-card">
-                      <input type="checkbox" name="styles" value="fantasy-whimsical" />
-                      <div>
-                        <span>Fantasy & Whimsical 🌌</span>
-                        <span class="style-description">Magical settings that turn pets into legends.</span>
-                      </div>
-                    </label>
+              <small class="helper">Pick as many as you’d like—we’ll render each one separately.</small>
+            </fieldset>
+            <fieldset>
+              <legend>Delivery options</legend>
+              <div class="delivery-options">
+                <label class="delivery-card">
+                  <input type="checkbox" name="delivery" value="digital" checked />
+                  <div>
+                    <strong>Digital download</strong>
+                    <span>High-res PNG delivered instantly — $4.99 per style.</span>
                   </div>
-                  <small class="helper">Pick as many as you’d like—we’ll render each one separately.</small>
-                </fieldset>
-                <fieldset>
-                  <legend>Delivery options</legend>
-                  <div class="delivery-options">
-                    <label class="delivery-card">
-                      <input type="checkbox" name="delivery" value="digital" checked />
-                      <div>
-                        <strong>Digital download</strong>
-                        <span>High-res PNG delivered instantly — $4.99 per style.</span>
-                      </div>
-                    </label>
-                    <label class="delivery-card">
-                      <input type="checkbox" name="delivery" value="framed" />
-                      <div>
-                        <strong>Framed print</strong>
-                        <span>Premium 12"×16" frame shipped to you — $24.99 per style.</span>
-                      </div>
-                    </label>
-                  </div>
-                  <small class="helper">Choose one or both options—pricing scales with your style count.</small>
-                </fieldset>
-                <label>
-                  Pet photo
-                  <input type="file" name="petImage" id="pet-image" accept="image/*" required />
-                  <small class="helper">We’ll upload it after payment so you can confirm or swap the image.</small>
                 </label>
-                <img id="image-preview" alt="Selected pet preview" />
-                <button type="submit" id="submit">Continue to secure payment</button>
-                <div id="status" role="alert"></div>
-              </form>
-            </div>
-          </div>
+                <label class="delivery-card">
+                  <input type="checkbox" name="delivery" value="framed" />
+                  <div>
+                    <strong>Framed print</strong>
+                    <span>Premium 12"×16" frame shipped to you — $24.99 per style.</span>
+                  </div>
+                </label>
+              </div>
+              <small class="helper">Choose one or both options—pricing scales with your style count.</small>
+            </fieldset>
+            <button type="submit" id="submit">Continue to secure payment</button>
+            <div id="status" role="alert"></div>
+          </form>
         </section>
-
-        <footer>
-          Built with ❤️ using Stripe Checkout, OpenAI Images, and Cloudflare Workers · © ${new Date().getFullYear()} Royal Pet Portrait Studio
-        </footer>
       </main>
       <script>
         (function() {
@@ -372,24 +303,14 @@ app.get("/", (context) => {
           const FRAMED_PRICE_CENTS = ${FRAMED_PRICE_CENTS};
           const form = document.getElementById('order-form');
           const status = document.getElementById('status');
-          const fileInput = document.getElementById('pet-image');
           const styleInputs = Array.from(form.querySelectorAll('input[name="styles"]'));
           const deliveryInputs = Array.from(form.querySelectorAll('input[name="delivery"]'));
-          const preview = document.getElementById('image-preview');
           const submitBtn = document.getElementById('submit');
           const summaryCard = document.getElementById('order-summary');
           const summaryStyles = document.getElementById('summary-styles');
           const summaryDelivery = document.getElementById('summary-delivery');
           const summaryTotal = document.getElementById('summary-total');
-          const ctaButtons = Array.from(document.querySelectorAll('[data-scroll-to-form]'));
           const STORAGE_KEY = 'royal-pet-portrait';
-
-          ctaButtons.forEach((btn) => {
-            btn.addEventListener('click', (event) => {
-              event.preventDefault();
-              document.getElementById('order').scrollIntoView({ behavior: 'smooth', block: 'start' });
-            });
-          });
 
           function showError(message) {
             status.textContent = message;
@@ -399,15 +320,6 @@ app.get("/", (context) => {
           function showSuccess(message) {
             status.textContent = message;
             status.classList.add('success');
-          }
-
-          function fileToDataURL(file) {
-            return new Promise((resolve, reject) => {
-              const reader = new FileReader();
-              reader.onload = () => resolve(reader.result);
-              reader.onerror = () => reject(reader.error || new Error('Unable to read file'));
-              reader.readAsDataURL(file);
-            });
           }
 
           function getSelectedStyles() {
@@ -453,8 +365,9 @@ app.get("/", (context) => {
 
           styleInputs.forEach((input) => input.addEventListener('change', updateSummary));
           deliveryInputs.forEach((input) => input.addEventListener('change', updateSummary));
+          updateSummary();
 
-          async function handleSubmit(event) {
+          form.addEventListener('submit', async (event) => {
             event.preventDefault();
             status.textContent = '';
             submitBtn.disabled = true;
@@ -462,7 +375,6 @@ app.get("/", (context) => {
             const firstName = form.firstName.value.trim();
             const lastName = form.lastName.value.trim();
             const email = form.email.value.trim();
-            const file = fileInput.files[0];
             const selectedStyles = getSelectedStyles();
             const selectedDelivery = getSelectedDelivery();
 
@@ -484,49 +396,22 @@ app.get("/", (context) => {
               return;
             }
 
-            if (!file) {
-              showError('Please choose a photo of your pet.');
-              submitBtn.disabled = false;
-              return;
-            }
-
             try {
-              const imageData = await fileToDataURL(file);
               const payload = {
                 firstName,
                 lastName,
                 email,
-                fileName: file.name,
-                fileType: file.type,
-                imageData,
                 styles: selectedStyles,
                 delivery: selectedDelivery,
               };
-              let photoCached = true;
-              try {
-                sessionStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-              } catch (storageError) {
-                console.warn('Unable to cache full order payload', storageError);
-                photoCached = false;
-                const fallbackPayload = {
-                  ...payload,
-                  imageData: null,
-                  imageTooLarge: true,
-                };
-                try {
-                  sessionStorage.setItem(STORAGE_KEY, JSON.stringify(fallbackPayload));
-                } catch (secondaryError) {
-                  console.warn('Unable to cache fallback order payload', secondaryError);
-                }
-                showError('Large photo detected — we’ll ask you to upload it again after checkout.');
-              }
+              sessionStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
 
               const response = await fetch('/api/create-checkout-session', {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ firstName, lastName, email, styles: selectedStyles, delivery: selectedDelivery }),
+                body: JSON.stringify(payload),
               });
 
               if (!response.ok) {
@@ -535,38 +420,14 @@ app.get("/", (context) => {
               }
 
               const { url } = await response.json();
-              if (!photoCached) {
-                showSuccess('Redirecting to Stripe Checkout… we’ll prompt you to re-upload the photo after payment.');
-              } else {
-                showSuccess('Redirecting to Stripe Checkout…');
-              }
+              showSuccess('Redirecting to Stripe Checkout…');
               window.location.assign(url);
             } catch (error) {
               console.error(error);
               showError(error.message || 'Something went wrong starting checkout.');
               submitBtn.disabled = false;
             }
-          }
-
-          fileInput.addEventListener('change', async () => {
-            const file = fileInput.files[0];
-            if (!file) {
-              preview.style.display = 'none';
-              preview.src = '';
-              return;
-            }
-            try {
-              const dataUrl = await fileToDataURL(file);
-              preview.src = dataUrl;
-              preview.style.display = 'block';
-            } catch (error) {
-              console.error(error);
-              showError('Unable to preview that image. Please try a different file.');
-            }
           });
-
-          form.addEventListener('submit', handleSubmit);
-          updateSummary();
         })();
       </script>
     </body>
@@ -910,13 +771,11 @@ app.get("/success", (context) => {
               combinedStyles.forEach((style) => selectedStyles.add(style));
               renderStyleGrid();
               updateStyleSummary();
-              updateSummary();
 
               const deliveryFromSession = normalizeDelivery(payload.delivery);
               const deliveryFromStorage = normalizeDelivery(storedData && storedData.delivery);
               selectedDelivery = deliveryFromSession.length ? deliveryFromSession : (deliveryFromStorage.length ? deliveryFromStorage : ['digital']);
               updateDeliverySummary();
-              updateSummary();
 
               if (storedData && storedData.imageData) {
                 preview.src = storedData.imageData;
@@ -957,7 +816,6 @@ app.get("/success", (context) => {
           renderStyleGrid();
           updateStyleSummary();
           updateDeliverySummary();
-          updateSummary();
           updateGenerateState();
 
           fileInput.addEventListener('change', async () => {
