@@ -817,6 +817,17 @@ app.get("/success", (context) => {
               form.hidden = false;
               sessionStorage.removeItem(STORAGE_KEY);
               updateGenerateState();
+              if (uploadReminder) {
+                if (needsReupload) {
+                  uploadReminder.hidden = false;
+                  uploadReminder.classList.remove('success');
+                  uploadReminder.textContent = 'Upload your pet photo to continue — images aren\'t saved after checkout.';
+                } else {
+                  uploadReminder.hidden = true;
+                  uploadReminder.textContent = '';
+                  uploadReminder.classList.remove('success');
+                }
+              }
             } catch (error) {
               console.error(error);
               showError(error.message || 'Unable to verify payment.');
