@@ -556,4 +556,8 @@ app.post("/api/generate-portrait", async (context) => {
   }
 });
 
-export default app;
+export default {
+  fetch(request, env, ctx) {
+    return app.fetch(request, env, ctx);
+  },
+};
