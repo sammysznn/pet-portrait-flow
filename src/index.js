@@ -29,6 +29,63 @@ const PORTRAIT_STYLES = {
 };
 
 const DEFAULT_PORTRAIT_STYLE = "realistic-painted";
+const DIGITAL_PRICE_CENTS = 499;
+const FRAMED_PRICE_CENTS = 2499;
+const VALID_DELIVERY_OPTIONS = new Set(["digital", "framed"]);
+
+function normalizeStyleArray(input) {
+  if (!input) {
+    return [];
+  }
+  let list = [];
+  if (Array.isArray(input)) {
+    list = input;
+  } else if (typeof input === "string") {
+    try {
+      const parsed = JSON.parse(input);
+      list = Array.isArray(parsed) ? parsed : [input];
+    } catch (error) {
+      list = input.includes(",") ? input.split(",") : [input];
+    }
+  }
+  const unique = [];
+  const seen = new Set();
+  for (const raw of list) {
+    const value = String(raw).trim();
+    if (PORTRAIT_STYLES[value] && !seen.has(value)) {
+      seen.add(value);
+      unique.push(value);
+    }
+  }
+  return unique;
+}
+
+function normalizeDeliveryArray(input) {
+  if (!input) {
+    return [];
+  }
+  let list = [];
+  if (Array.isArray(input)) {
+    list = input;
+  } else if (typeof input === "string") {
+    try {
+      const parsed = JSON.parse(input);
+      list = Array.isArray(parsed) ? parsed : [input];
+    } catch (error) {
+      list = input.includes(",") ? input.split(",") : [input];
+    }
+  }
+  const unique = [];
+  const seen = new Set();
+  for (const raw of list) {
+    const value = String(raw).trim();
+    if (VALID_DELIVERY_OPTIONS.has(value) && !seen.has(value)) {
+      seen.add(value);
+      unique.push(value);
+    }
+  }
+  return unique;
+}
 
 /**
  * Global middleware: configure Stripe and OpenAI clients per-request.
@@ -76,8 +133,19 @@ app.get("/", (context) => {
         p.lede { margin-top: 0; margin-bottom: 24px; font-size: 1.05rem; color: #465870; }
         form { display: grid; gap: 16px; background: #fff; padding: 24px; border-radius: 16px; box-shadow: 0 24px 48px rgba(10,37,64,0.08); }
         label { display: grid; gap: 8px; font-weight: 600; }
-        input[type="text"], input[type="email"], input[type="file"], select { font: inherit; padding: 10px 12px; border: 1px solid #cfd7df; border-radius: 8px; }
+        input[type="text"], input[type="email"], input[type="file"] { font: inherit; padding: 10px 12px; border: 1px solid #cfd7df; border-radius: 8px; }
         input[type="file"] { padding: 6px; }
+        .styles-grid { display: grid; gap: 12px; }
+        @media (min-width: 640px) { .styles-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+        .style-card { display: flex; align-items: flex-start; gap: 10px; padding: 12px; border: 1px solid #d7e0eb; border-radius: 12px; background: #fdfdff; transition: border 0.15s ease, box-shadow 0.15s ease; }
+        .style-card:hover { border-color: #635bff; box-shadow: 0 8px 24px rgba(99,91,255,0.12); }
+        .style-card input { margin-top: 4px; }
+        .style-card span { display: block; font-weight: 500; }
+        .style-description { display: block; font-weight: 400; color: #62718b; font-size: 0.9rem; margin-top: 4px; }
+        .delivery-options { display: grid; gap: 12px; }
+        .delivery-card { display: flex; align-items: center; gap: 10px; padding: 12px; border: 1px solid #d7e0eb; border-radius: 12px; background: #fdfdff; }
+        .delivery-card strong { display: block; font-weight: 600; }
+        .delivery-card span { color: #62718b; font-size: 0.9rem; }
         button { font: inherit; font-weight: 600; padding: 12px 16px; border-radius: 999px; border: none; cursor: pointer; background: #635bff; color: #fff; transition: background 0.15s ease, transform 0.15s ease; }
         button:hover { background: #5046e4; transform: translateY(-1px); }
         button:disabled { opacity: .6; cursor: not-allowed; transform: none; }
@@ -104,17 +172,67 @@ app.get("/", (context) => {
             Email address
             <input type="email" name="email" id="email" autocomplete="email" required />
           </label>
-          <label>
-            Portrait style
-            <select name="style" id="style" required>
-              <option value="realistic-painted" selected>Realistic Painted Portrait 🎨</option>
-              <option value="royal-costume">Royal / Costume Portrait 👑</option>
-              <option value="cartoon-pop">Cartoon & Pop Art 🐾</option>
-              <option value="minimalist-line">Minimalist Line Art ✍️</option>
-              <option value="fantasy-whimsical">Fantasy & Whimsical 🌌</option>
-            </select>
-            <small class="helper">Pick the vibe that fits your pet's personality.</small>
-          </label>
+          <fieldset>
+            <legend style="font-weight: 600; margin-bottom: 8px;">Choose your portrait styles</legend>
+            <div class="styles-grid">
+              <label class="style-card">
+                <input type="checkbox" name="styles" value="realistic-painted" checked />
+                <div>
+                  <span>Realistic Painted Portrait 🎨</span>
+                  <span class="style-description">Classic oil / acrylic look with museum-grade drama.</span>
+                </div>
+              </label>
+              <label class="style-card">
+                <input type="checkbox" name="styles" value="royal-costume" />
+                <div>
+                  <span>Royal / Costume Portrait 👑</span>
+                  <span class="style-description">Dress your pet like nobility, generals, or iconic heroes.</span>
+                </div>
+              </label>
+              <label class="style-card">
+                <input type="checkbox" name="styles" value="cartoon-pop" />
+                <div>
+                  <span>Cartoon & Pop Art 🐾</span>
+                  <span class="style-description">Bold color blocking, graphic outlines, and pop-art vibes.</span>
+                </div>
+              </label>
+              <label class="style-card">
+                <input type="checkbox" name="styles" value="minimalist-line" />
+                <div>
+                  <span>Minimalist Line Art ✍️</span>
+                  <span class="style-description">Elegant single-line treatment for minimalist interiors.</span>
+                </div>
+              </label>
+              <label class="style-card">
+                <input type="checkbox" name="styles" value="fantasy-whimsical" />
+                <div>
+                  <span>Fantasy & Whimsical 🌌</span>
+                  <span class="style-description">Enchanting scenes that turn pets into legendary heroes.</span>
+                </div>
+              </label>
+            </div>
+            <small class="helper">Pick as many as you’d like—we’ll generate each one.</small>
+          </fieldset>
+          <fieldset>
+            <legend style="font-weight: 600; margin-bottom: 8px;">Delivery options</legend>
+            <div class="delivery-options">
+              <label class="delivery-card">
+                <input type="checkbox" name="delivery" value="digital" checked />
+                <div>
+                  <strong>Digital download</strong>
+                  <span>High-res PNG delivered instantly — $4.99 per style.</span>
+                </div>
+              </label>
+              <label class="delivery-card">
+                <input type="checkbox" name="delivery" value="framed" />
+                <div>
+                  <strong>Framed print</strong>
+                  <span>Premium 12"x16" frame shipped to you — $24.99 per style.</span>
+                </div>
+              </label>
+            </div>
+            <small class="helper">You can grab the digital download, a framed keepsake, or both.</small>
+          </fieldset>
           <label>
             Pet photo
             <input type="file" name="petImage" id="pet-image" accept="image/*" required />
@@ -130,7 +248,8 @@ app.get("/", (context) => {
           const form = document.getElementById('order-form');
           const status = document.getElementById('status');
           const fileInput = document.getElementById('pet-image');
-          const styleSelect = document.getElementById('style');
+          const styleInputs = Array.from(form.querySelectorAll('input[name="styles"]'));
+          const deliveryInputs = Array.from(form.querySelectorAll('input[name="delivery"]'));
           const preview = document.getElementById('image-preview');
           const submitBtn = document.getElementById('submit');
           const STORAGE_KEY = 'royal-pet-portrait';
@@ -163,7 +282,8 @@ app.get("/", (context) => {
             const lastName = form.lastName.value.trim();
             const email = form.email.value.trim();
             const file = fileInput.files[0];
-            const style = styleSelect.value;
+            const selectedStyles = styleInputs.filter((input) => input.checked).map((input) => input.value);
+            const selectedDelivery = deliveryInputs.filter((input) => input.checked).map((input) => input.value);
 
             if (!firstName || !lastName || !email) {
               showError('Please fill out your contact information.');
@@ -171,8 +291,14 @@ app.get("/", (context) => {
               return;
             }
 
-            if (!style) {
-              showError('Please choose your preferred portrait style.');
+            if (selectedStyles.length === 0) {
+              showError('Pick at least one portrait style.');
+              submitBtn.disabled = false;
+              return;
+            }
+
+            if (selectedDelivery.length === 0) {
+              showError('Select at least one delivery option.');
               submitBtn.disabled = false;
               return;
             }
@@ -192,7 +318,8 @@ app.get("/", (context) => {
                 fileName: file.name,
                 fileType: file.type,
                 imageData,
-                style,
+                styles: selectedStyles,
+                delivery: selectedDelivery,
               };
               sessionStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
 
@@ -201,7 +328,7 @@ app.get("/", (context) => {
                 headers: {
                   'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ firstName, lastName, email, style }),
+                body: JSON.stringify({ firstName, lastName, email, styles: selectedStyles, delivery: selectedDelivery }),
               });
 
               if (!response.ok) {
@@ -260,7 +387,16 @@ app.get("/success", (context) => {
         p { margin-top: 0; color: #465870; }
         form { display: grid; gap: 16px; background: #fff; padding: 24px; border-radius: 16px; box-shadow: 0 24px 48px rgba(10,37,64,0.08); margin-top: 24px; }
         label { display: grid; gap: 8px; font-weight: 600; }
-        input[type="file"], select { font: inherit; padding: 6px; border: 1px solid #cfd7df; border-radius: 8px; }
+        input[type="file"] { font: inherit; padding: 6px; border: 1px solid #cfd7df; border-radius: 8px; }
+        .styles-grid { display: grid; gap: 12px; }
+        @media (min-width: 640px) { .styles-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+        .style-card { display: flex; align-items: flex-start; gap: 10px; padding: 12px; border: 1px solid #d7e0eb; border-radius: 12px; background: #fdfdff; transition: border 0.15s ease, box-shadow 0.15s ease; }
+        .style-card:hover { border-color: #635bff; box-shadow: 0 8px 24px rgba(99,91,255,0.12); }
+        .style-card input { margin-top: 4px; }
+        .style-card span { display: block; font-weight: 500; }
+        .style-description { display: block; font-weight: 400; color: #62718b; font-size: 0.9rem; margin-top: 4px; }
+        #style-summary { margin: 16px 0 0; font-size: 0.95rem; color: #465870; }
+        #delivery-summary { margin: 8px 0 0; font-size: 0.95rem; color: #465870; }
         button { font: inherit; font-weight: 600; padding: 12px 16px; border-radius: 999px; border: none; cursor: pointer; background: #635bff; color: #fff; transition: background 0.15s ease, transform 0.15s ease; }
         button:hover { background: #5046e4; transform: translateY(-1px); }
         button:disabled { opacity: .6; cursor: not-allowed; transform: none; }
@@ -269,44 +405,42 @@ app.get("/success", (context) => {
         #status.success { color: #0a8340; }
         #preview { width: 100%; max-height: 240px; object-fit: contain; border-radius: 12px; border: 1px dashed #cfd7df; padding: 8px; display: none; background: #fafcff; }
         #result { margin-top: 32px; display: grid; gap: 16px; }
-        #result img { width: 100%; border-radius: 16px; box-shadow: 0 24px 48px rgba(10,37,64,0.12); }
-        a.download { text-decoration: none; font-weight: 600; color: #635bff; }
+        #result-grid { display: grid; gap: 24px; }
+        @media (min-width: 768px) { #result-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+        #result-grid figure { margin: 0; display: grid; gap: 12px; }
+        #result-grid img { width: 100%; border-radius: 16px; box-shadow: 0 24px 48px rgba(10,37,64,0.12); }
+        #result-grid figcaption { font-weight: 600; color: #0a2540; }
+        #result-grid a { text-decoration: none; font-weight: 600; color: #635bff; }
       </style>
     </head>
     <body>
       <main>
         <h1>Payment confirmed 🎉</h1>
-        <p>Upload your pet's photo below and we'll generate a royal portrait just for you.</p>
+        <p>Upload your pet's photo below and we'll generate portraits in every style you picked.</p>
         <section id="status" role="status">Verifying your payment with Stripe…</section>
         <p id="style-summary" hidden></p>
+        <p id="delivery-summary" hidden></p>
         <form id="upload-form" hidden>
           <input type="hidden" name="sessionId" id="session-id" />
           <input type="hidden" name="email" id="email" />
           <input type="hidden" name="firstName" id="first-name" />
           <input type="hidden" name="lastName" id="last-name" />
-          <label>
-            Portrait style
-            <select name="style" id="style" required>
-              <option value="realistic-painted">Realistic Painted Portrait 🎨</option>
-              <option value="royal-costume">Royal / Costume Portrait 👑</option>
-              <option value="cartoon-pop">Cartoon & Pop Art 🐾</option>
-              <option value="minimalist-line">Minimalist Line Art ✍️</option>
-              <option value="fantasy-whimsical">Fantasy & Whimsical 🌌</option>
-            </select>
-            <small>Feel free to tweak your style before we generate.</small>
-          </label>
+          <section>
+            <h2 style="font-size: 1rem; margin: 0; font-weight: 600;">Select styles to generate now</h2>
+            <p style="margin: 4px 0 12px; color: #62718b;">Uncheck any you want to skip for this run.</p>
+            <div class="styles-grid" id="style-grid"></div>
+          </section>
           <label>
             Pet photo
             <input type="file" name="petImage" id="pet-image" accept="image/*" />
             <small>We saved your original selection. Feel free to replace it.</small>
           </label>
           <img id="preview" alt="Pet preview" />
-          <button type="submit" id="generate" disabled>Generate royal portrait</button>
+          <button type="submit" id="generate" disabled>Generate portraits</button>
         </form>
         <div id="result" hidden>
-          <h2>Your royal portrait is ready 👑</h2>
-          <img id="result-image" alt="Royal pet portrait" />
-          <a id="download" class="download" download="royal-pet-portrait.png">Download the high resolution file</a>
+          <h2>Your portraits are ready 👑</h2>
+          <div id="result-grid"></div>
         </div>
       </main>
       <script>
@@ -319,14 +453,14 @@ app.get("/success", (context) => {
           const emailInput = document.getElementById('email');
           const firstNameInput = document.getElementById('first-name');
           const lastNameInput = document.getElementById('last-name');
-          const styleSelect = document.getElementById('style');
+          const styleGrid = document.getElementById('style-grid');
           const fileInput = document.getElementById('pet-image');
           const preview = document.getElementById('preview');
           const generateBtn = document.getElementById('generate');
           const resultContainer = document.getElementById('result');
-          const resultImage = document.getElementById('result-image');
-          const downloadLink = document.getElementById('download');
+          const resultGrid = document.getElementById('result-grid');
           const styleSummary = document.getElementById('style-summary');
+          const deliverySummary = document.getElementById('delivery-summary');
           const STORAGE_KEY = 'royal-pet-portrait';
           const STYLE_OPTIONS = {
             'realistic-painted': {
@@ -350,6 +484,16 @@ app.get("/success", (context) => {
               description: 'Dreamy, imaginative scenes that turn your pet into a magical legend.',
             },
           };
+          const DELIVERY_OPTIONS = {
+            digital: {
+              label: 'Digital download',
+              price: '$4.99 per style',
+            },
+            framed: {
+              label: 'Framed print',
+              price: '$24.99 per style',
+            },
+          };
           const DEFAULT_STYLE = 'realistic-painted';
 
           let storedData = null;
@@ -361,17 +505,141 @@ app.get("/success", (context) => {
               console.warn('Unable to restore stored order', error);
             }
           }
+          if (storedData && storedData.style && !storedData.styles) {
+            storedData.styles = [storedData.style];
+          }
+          if (storedData && storedData.delivery && !Array.isArray(storedData.delivery)) {
+            storedData.delivery = [storedData.delivery];
+          }
 
-          function applyStyle(value) {
-            const selected = STYLE_OPTIONS[value] ? value : DEFAULT_STYLE;
-            styleSelect.value = selected;
-            const data = STYLE_OPTIONS[selected];
-            if (data) {
-              styleSummary.hidden = false;
-              styleSummary.textContent = data.label + ' – ' + data.description;
-            } else {
-              styleSummary.hidden = true;
+          const selectedStyles = new Set();
+          let selectedDelivery = [];
+          let hasPreviewImage = false;
+
+          const presetStyles = normalizeStyles(storedData && storedData.styles);
+          presetStyles.forEach((style) => selectedStyles.add(style));
+          if (selectedStyles.size === 0) {
+            selectedStyles.add(DEFAULT_STYLE);
+          }
+
+          selectedDelivery = normalizeDelivery(storedData && storedData.delivery);
+          if (!selectedDelivery.length) {
+            selectedDelivery = ['digital'];
+          }
+
+          function normalizeStyles(value) {
+            if (!value) return [];
+            let list = [];
+            if (Array.isArray(value)) {
+              list = value;
+            } else if (typeof value === 'string') {
+              try {
+                const parsed = JSON.parse(value);
+                list = Array.isArray(parsed) ? parsed : [value];
+              } catch (error) {
+                list = value.includes(',') ? value.split(',') : [value];
+              }
             }
+            const unique = [];
+            const seen = new Set();
+            list.forEach((item) => {
+              const trimmed = String(item).trim();
+              if (STYLE_OPTIONS[trimmed] && !seen.has(trimmed)) {
+                seen.add(trimmed);
+                unique.push(trimmed);
+              }
+            });
+            return unique;
+          }
+
+          function normalizeDelivery(value) {
+            if (!value) return [];
+            let list = [];
+            if (Array.isArray(value)) {
+              list = value;
+            } else if (typeof value === 'string') {
+              try {
+                const parsed = JSON.parse(value);
+                list = Array.isArray(parsed) ? parsed : [value];
+              } catch (error) {
+                list = value.includes(',') ? value.split(',') : [value];
+              }
+            }
+            const unique = [];
+            const seen = new Set();
+            list.forEach((item) => {
+              const trimmed = String(item).trim();
+              if (DELIVERY_OPTIONS[trimmed] && !seen.has(trimmed)) {
+                seen.add(trimmed);
+                unique.push(trimmed);
+              }
+            });
+            return unique;
+          }
+
+          function updateStyleSummary() {
+            const styles = Array.from(selectedStyles);
+            if (styles.length === 0) {
+              styleSummary.hidden = false;
+              styleSummary.textContent = 'Select at least one style to generate your portraits.';
+            } else {
+              const labels = styles.map((style) => STYLE_OPTIONS[style]?.label || style);
+              styleSummary.hidden = false;
+              styleSummary.textContent = 'Styles selected: ' + labels.join(', ');
+            }
+          }
+
+          function updateDeliverySummary() {
+            if (!selectedDelivery.length) {
+              deliverySummary.hidden = true;
+              return;
+            }
+            const details = selectedDelivery
+              .map((value) => {
+                const option = DELIVERY_OPTIONS[value];
+                return option ? option.label + ' (' + option.price + ')' : null;
+              })
+              .filter(Boolean);
+            if (!details.length) {
+              deliverySummary.hidden = true;
+              return;
+            }
+            deliverySummary.hidden = false;
+            deliverySummary.textContent = 'Delivery: ' + details.join(' · ');
+          }
+
+          function updateGenerateState() {
+            const hasStyles = selectedStyles.size > 0;
+            generateBtn.disabled = !(hasStyles && hasPreviewImage);
+          }
+
+          function renderStyleGrid() {
+            const html = Object.entries(STYLE_OPTIONS)
+              .map(([value, data]) => {
+                const checkedAttr = selectedStyles.has(value) ? ' checked' : '';
+                return '<label class="style-card">'
+                  + '<input type="checkbox" name="styles" value="' + value + '"' + checkedAttr + ' />'
+                  + '<div>'
+                  + '<span>' + data.label + '</span>'
+                  + '<span class="style-description">' + data.description + '</span>'
+                  + '</div>'
+                  + '</label>';
+              })
+              .join('');
+            styleGrid.innerHTML = html;
+            const inputs = Array.from(styleGrid.querySelectorAll('input[name="styles"]'));
+            inputs.forEach((input) => {
+              input.addEventListener('change', () => {
+                const { value, checked } = input;
+                if (checked) {
+                  selectedStyles.add(value);
+                } else {
+                  selectedStyles.delete(value);
+                }
+                updateStyleSummary();
+                updateGenerateState();
+              });
+            });
           }
 
           if (!sessionId) {
@@ -416,57 +684,78 @@ app.get("/success", (context) => {
               firstNameInput.value = payload.firstName || '';
               lastNameInput.value = payload.lastName || '';
 
-              const resolvedStyle = payload.style || (storedData && storedData.style) || DEFAULT_STYLE;
-              applyStyle(resolvedStyle);
-              if (storedData) {
-                storedData.style = resolvedStyle;
+              const sessionStyles = normalizeStyles(payload.styles);
+              const storedStyles = normalizeStyles(storedData && storedData.styles);
+              const combinedStyles = new Set([...sessionStyles, ...storedStyles]);
+              if (combinedStyles.size === 0) {
+                combinedStyles.add(DEFAULT_STYLE);
               }
+              selectedStyles.clear();
+              combinedStyles.forEach((style) => selectedStyles.add(style));
+              renderStyleGrid();
+              updateStyleSummary();
+
+              const deliveryFromSession = normalizeDelivery(payload.delivery);
+              const deliveryFromStorage = normalizeDelivery(storedData && storedData.delivery);
+              selectedDelivery = deliveryFromSession.length ? deliveryFromSession : (deliveryFromStorage.length ? deliveryFromStorage : ['digital']);
+              updateDeliverySummary();
 
               if (storedData && storedData.imageData) {
                 preview.src = storedData.imageData;
                 preview.style.display = 'block';
-                generateBtn.disabled = false;
+                hasPreviewImage = true;
               }
 
               status.textContent = 'Payment confirmed. Upload (or confirm) your pet photo to continue.';
               status.classList.add('success');
               status.classList.remove('error');
               form.hidden = false;
-              generateBtn.disabled = false;
               sessionStorage.removeItem(STORAGE_KEY);
+              updateGenerateState();
             } catch (error) {
               console.error(error);
               showError(error.message || 'Unable to verify payment.');
             }
           }
 
-          applyStyle((storedData && storedData.style) || DEFAULT_STYLE);
-          styleSelect.addEventListener('change', () => {
-            applyStyle(styleSelect.value);
-          });
+          renderStyleGrid();
+          updateStyleSummary();
+          updateGenerateState();
 
           fileInput.addEventListener('change', async () => {
             const file = fileInput.files[0];
             if (!file) {
               preview.src = '';
               preview.style.display = 'none';
+              hasPreviewImage = Boolean(storedData && storedData.imageData);
+              updateGenerateState();
               return;
             }
             const reader = new FileReader();
             reader.onload = () => {
               preview.src = reader.result;
               preview.style.display = 'block';
+              hasPreviewImage = true;
+              updateGenerateState();
             };
             reader.readAsDataURL(file);
           });
 
           form.addEventListener('submit', async (event) => {
             event.preventDefault();
-            showSuccess('Generating your portrait… this can take a few moments.');
+            const stylesArray = Array.from(selectedStyles);
+            if (stylesArray.length === 0) {
+              showError('Please choose at least one style to generate.');
+              updateGenerateState();
+              return;
+            }
+
+            showSuccess('Generating your portraits… this can take a few moments.');
             generateBtn.disabled = true;
 
             const formData = new FormData(form);
-            formData.set('style', styleSelect.value || DEFAULT_STYLE);
+            formData.delete('styles');
+            stylesArray.forEach((style) => formData.append('styles', style));
             let file = formData.get('petImage');
 
             if (!file || (file instanceof File && file.size === 0)) {
@@ -498,14 +787,30 @@ app.get("/success", (context) => {
               }
 
               const result = await response.json();
-              const imageData = result.imageBase64;
-              resultImage.src = 'data:image/png;base64,' + imageData;
-              downloadLink.href = resultImage.src;
+              const portraits = Array.isArray(result.portraits) ? result.portraits : [];
+              if (!portraits.length) {
+                throw new Error('We did not receive any portraits back from the studio.');
+              }
+
+              resultGrid.innerHTML = portraits
+                .map(({ style, label, imageBase64 }, index) => {
+                  const dataUrl = 'data:image/png;base64,' + imageBase64;
+                  const fallbackLabel = 'Portrait ' + (index + 1);
+                  const displayLabel = label || (STYLE_OPTIONS[style] && STYLE_OPTIONS[style].label) || fallbackLabel;
+                  const downloadName = (style || 'pet-portrait') + '-' + (sessionId || 'session') + '.png';
+                  return '<figure>'
+                    + '<img src="' + dataUrl + '" alt="' + displayLabel + '" />'
+                    + '<figcaption>' + displayLabel + '</figcaption>'
+                    + '<a href="' + dataUrl + '" download="' + downloadName + '">Download this portrait</a>'
+                    + '</figure>';
+                })
+                .join('');
+
               resultContainer.hidden = false;
-              showSuccess('All done! Enjoy your royal pet portrait.');
+              showSuccess('All done! Your portraits are ready.');
             } catch (error) {
               console.error(error);
-              showError(error.message || 'Something went wrong generating your portrait.');
+              showError(error.message || 'Something went wrong generating your portraits.');
             } finally {
               generateBtn.disabled = false;
             }
@@ -533,15 +838,56 @@ app.post("/api/create-checkout-session", async (context) => {
   const firstName = typeof payload.firstName === "string" ? payload.firstName.trim() : "";
   const lastName = typeof payload.lastName === "string" ? payload.lastName.trim() : "";
   const email = typeof payload.email === "string" ? payload.email.trim() : "";
-  const styleInput = typeof payload.style === "string" ? payload.style : "";
-  const portraitStyle = PORTRAIT_STYLES[styleInput] ? styleInput : DEFAULT_PORTRAIT_STYLE;
+  const styles = normalizeStyleArray(payload.styles);
+  const delivery = normalizeDeliveryArray(payload.delivery);
+  const digitalSelected = delivery.includes("digital");
+  const framedSelected = delivery.includes("framed");
 
   if (!firstName || !lastName || !email) {
     return context.json({ message: "Missing required customer information." }, 400);
   }
 
+  if (!styles.length) {
+    return context.json({ message: "Select at least one portrait style." }, 400);
+  }
+
+  if (!digitalSelected && !framedSelected) {
+    return context.json({ message: "Select at least one delivery option." }, 400);
+  }
+
   const url = new URL(context.req.url);
   try {
+    const styleLabels = styles.map((style) => PORTRAIT_STYLES[style]?.label ?? style);
+    const lineItems = [];
+
+    if (digitalSelected) {
+      lineItems.push({
+        price_data: {
+          currency: "usd",
+          product_data: {
+            name: "Digital pet portrait",
+            description: `High-resolution PNG delivery. Styles: ${styleLabels.join(", ")}`.slice(0, 500),
+          },
+          unit_amount: DIGITAL_PRICE_CENTS,
+        },
+        quantity: styles.length,
+      });
+    }
+
+    if (framedSelected) {
+      lineItems.push({
+        price_data: {
+          currency: "usd",
+          product_data: {
+            name: "Framed pet portrait",
+            description: `Professionally framed print shipped to you. Styles: ${styleLabels.join(", ")}`.slice(0, 500),
+          },
+          unit_amount: FRAMED_PRICE_CENTS,
+        },
+        quantity: styles.length,
+      });
+    }
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       mode: "payment",
@@ -549,22 +895,14 @@ app.post("/api/create-checkout-session", async (context) => {
       metadata: {
         firstName,
         lastName,
-        style: portraitStyle,
-        styleLabel: PORTRAIT_STYLES[portraitStyle]?.label ?? portraitStyle,
+        styles: JSON.stringify(styles),
+        styleLabels: JSON.stringify(styleLabels),
+        delivery: JSON.stringify(delivery),
+        totalStyles: String(styles.length),
+        includesDigital: digitalSelected ? "true" : "false",
+        includesFramed: framedSelected ? "true" : "false",
       },
-      line_items: [
-        {
-          price_data: {
-            currency: "usd",
-            product_data: {
-              name: "Royal Pet Portrait",
-              description: "AI-crafted regal portrait of your beloved pet.",
-            },
-            unit_amount: 2500,
-          },
-          quantity: 1,
-        },
-      ],
+      line_items: lineItems,
       success_url: `${url.origin}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${url.origin}/?canceled=true`,
     });
@@ -588,13 +926,31 @@ app.get("/api/session-status", async (context) => {
   try {
     const session = await stripe.checkout.sessions.retrieve(sessionId);
     const paid = session.payment_status === "paid";
+    const metadata = session.metadata || {};
+    const styles = normalizeStyleArray(metadata.styles || metadata.style);
+    let styleLabels = [];
+    if (metadata.styleLabels) {
+      try {
+        const parsed = JSON.parse(metadata.styleLabels);
+        if (Array.isArray(parsed)) {
+          styleLabels = parsed.map((label) => String(label));
+        }
+      } catch (error) {
+        styleLabels = [];
+      }
+    } else if (metadata.styleLabel) {
+      styleLabels = [String(metadata.styleLabel)];
+    }
+    const delivery = normalizeDeliveryArray(metadata.delivery);
+
     return context.json({
       paid,
       email: session.customer_details && session.customer_details.email,
-      firstName: session.metadata && session.metadata.firstName,
-      lastName: session.metadata && session.metadata.lastName,
-      style: session.metadata && session.metadata.style,
-      styleLabel: session.metadata && session.metadata.styleLabel,
+      firstName: metadata.firstName,
+      lastName: metadata.lastName,
+      styles,
+      styleLabels,
+      delivery,
     });
   } catch (error) {
     console.error("Stripe session retrieve error", error);
@@ -613,17 +969,17 @@ app.post("/api/generate-portrait", async (context) => {
 
   let formData;
   try {
-    formData = await context.req.parseBody();
+    formData = await context.req.raw.formData();
   } catch (error) {
     return context.json({ message: "Expected multipart form-data." }, 400);
   }
 
-  const sessionId = typeof formData.sessionId === "string" ? formData.sessionId : "";
-  const email = typeof formData.email === "string" ? formData.email : "";
-  const firstName = typeof formData.firstName === "string" ? formData.firstName : "";
-  const lastName = typeof formData.lastName === "string" ? formData.lastName : "";
-  const petImage = formData.petImage;
-  const styleInput = typeof formData.style === "string" ? formData.style : "";
+  const sessionId = (formData.get("sessionId") || "").toString();
+  const email = (formData.get("email") || "").toString();
+  const firstName = (formData.get("firstName") || "").toString();
+  const lastName = (formData.get("lastName") || "").toString();
+  const petImage = formData.get("petImage");
+  const rawStyles = formData.getAll("styles");
 
   if (!sessionId || !email || !petImage) {
     return context.json({ message: "Missing required form data." }, 400);
@@ -632,6 +988,8 @@ app.post("/api/generate-portrait", async (context) => {
   if (!(petImage instanceof File) || petImage.size === 0) {
     return context.json({ message: "A valid pet image file is required." }, 400);
   }
+
+  const requestedStyles = normalizeStyleArray(rawStyles);
 
   try {
     const session = await stripe.checkout.sessions.retrieve(sessionId);
@@ -643,33 +1001,47 @@ app.post("/api/generate-portrait", async (context) => {
       return context.json({ message: "Session email does not match the submitted email." }, 400);
     }
 
-    let style = PORTRAIT_STYLES[styleInput] ? styleInput : undefined;
-    if (!style && session.metadata?.style && PORTRAIT_STYLES[session.metadata.style]) {
-      style = session.metadata.style;
-    }
-    if (!style) {
-      style = DEFAULT_PORTRAIT_STYLE;
+    const metadata = session.metadata || {};
+    const purchasedStyles = normalizeStyleArray(metadata.styles || metadata.style);
+    const allowedStyles = new Set(purchasedStyles.length ? purchasedStyles : [DEFAULT_PORTRAIT_STYLE]);
+
+    const uniqueStyles = requestedStyles.filter((style) => allowedStyles.has(style));
+    if (!uniqueStyles.length) {
+      uniqueStyles.push(...allowedStyles);
     }
 
-    const persona = `${firstName || session.metadata?.firstName || ''} ${lastName || session.metadata?.lastName || ''}`.trim();
-    const styleDetails = PORTRAIT_STYLES[style] || PORTRAIT_STYLES[DEFAULT_PORTRAIT_STYLE];
+    const persona = `${firstName || metadata.firstName || ""} ${lastName || metadata.lastName || ""}`.trim();
     const personaLine = persona ? ` Include a tasteful name plaque or inscription that reads \"${persona}\".` : "";
-    const prompt = `${styleDetails.prompt} Use the provided pet photo strictly as a reference so the face, markings, and colors stay accurate.${personaLine}`;
 
-    const response = await openai.images.edit({
-      model: "gpt-image-1",
-      image: petImage,
-      prompt,
-      size: "1024x1024",
-      response_format: "b64_json",
-    });
+    const binary = await petImage.arrayBuffer();
 
-    const [image] = response.data || [];
-    if (!image || !image.b64_json) {
-      throw new Error("OpenAI did not return image data.");
+    const portraits = [];
+    for (const style of uniqueStyles) {
+      const styleDetails = PORTRAIT_STYLES[style] || PORTRAIT_STYLES[DEFAULT_PORTRAIT_STYLE];
+      const prompt = `${styleDetails.prompt} Use the provided pet photo strictly as a reference so the face, markings, and colors stay accurate.${personaLine}`;
+      const imageFile = new File([binary], petImage.name || "pet-image.png", { type: petImage.type || "image/png" });
+
+      const response = await openai.images.edit({
+        model: "gpt-image-1",
+        image: imageFile,
+        prompt,
+        size: "1024x1024",
+        response_format: "b64_json",
+      });
+
+      const [image] = response.data || [];
+      if (!image || !image.b64_json) {
+        throw new Error("OpenAI did not return image data.");
+      }
+
+      portraits.push({
+        style,
+        label: styleDetails.label,
+        imageBase64: image.b64_json,
+      });
     }
 
-    return context.json({ imageBase64: image.b64_json });
+    return context.json({ portraits });
   } catch (error) {
     console.error("Portrait generation error", error);
     const message = error && error.message ? error.message : "Failed to generate portrait.";
