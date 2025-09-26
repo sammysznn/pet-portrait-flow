@@ -124,127 +124,252 @@ app.get("/", (context) => {
     <head>
       <meta charset="UTF-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <title>Royal Pet Portrait Checkout</title>
+      <title>Royal Pet Portrait Studio</title>
       <style>
         :root { color-scheme: light dark; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 0; padding: 0; background: #f6f9fc; color: #0a2540; }
-        main { max-width: 720px; margin: 0 auto; padding: 48px 24px 64px; }
-        h1 { margin-bottom: 16px; }
-        p.lede { margin-top: 0; margin-bottom: 24px; font-size: 1.05rem; color: #465870; }
-        form { display: grid; gap: 16px; background: #fff; padding: 24px; border-radius: 16px; box-shadow: 0 24px 48px rgba(10,37,64,0.08); }
-        label { display: grid; gap: 8px; font-weight: 600; }
-        input[type="text"], input[type="email"], input[type="file"] { font: inherit; padding: 10px 12px; border: 1px solid #cfd7df; border-radius: 8px; }
+        body { font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 0; padding: 0; background: radial-gradient(circle at top, #eef2ff 0%, #f6f9fc 35%, #fdfdfd 100%); color: #0a2540; }
+        body::before { content: ""; position: fixed; inset: 0; pointer-events: none; background: radial-gradient(ellipse at top right, rgba(99,91,255,0.16), transparent 55%), radial-gradient(ellipse at bottom left, rgba(34,197,94,0.08), transparent 60%); z-index: 0; }
+        a { color: inherit; }
+        main { position: relative; z-index: 1; max-width: 1080px; margin: 0 auto; padding: 64px 24px 120px; display: grid; gap: 72px; }
+        header { display: grid; gap: 32px; text-align: center; }
+        header h1 { font-size: clamp(2.8rem, 4vw, 4rem); margin: 0; line-height: 1.05; letter-spacing: -0.03em; }
+        header p { margin: 0 auto; max-width: 720px; font-size: 1.15rem; color: #425466; }
+        header .cta-group { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+        .cta-primary { padding: 14px 28px; border-radius: 999px; border: none; background: linear-gradient(120deg, #635bff, #22c55e); color: #fff; font-weight: 600; cursor: pointer; font-size: 1rem; box-shadow: 0 18px 40px -24px rgba(99,91,255,0.8); transition: transform 0.15s ease, box-shadow 0.15s ease; }
+        .cta-primary:hover { transform: translateY(-2px); box-shadow: 0 25px 60px -30px rgba(99,91,255,0.85); }
+        .cta-secondary { border-radius: 999px; padding: 12px 26px; border: 1px solid rgba(99,91,255,0.2); background: rgba(255,255,255,0.6); font-weight: 600; color: #0a2540; backdrop-filter: blur(12px); cursor: pointer; transition: border 0.15s ease, transform 0.15s ease; }
+        .cta-secondary:hover { border-color: rgba(99,91,255,0.4); transform: translateY(-1px); }
+        .hero-preview { display: grid; gap: 24px; background: rgba(255,255,255,0.78); border-radius: 24px; padding: 28px; border: 1px solid rgba(99,91,255,0.18); box-shadow: 0 40px 80px -48px rgba(15,37,64,0.35); backdrop-filter: blur(22px); max-width: 880px; margin: 0 auto; text-align: left; }
+        .hero-preview h2 { margin: 0; font-size: 1.5rem; }
+        .pill-list { display: flex; flex-wrap: wrap; gap: 8px; }
+        .pill { padding: 8px 14px; border-radius: 999px; background: rgba(99,91,255,0.12); color: #333b66; font-size: 0.9rem; font-weight: 500; }
+        section { display: grid; gap: 24px; }
+        .section-title { font-size: clamp(1.8rem, 2.6vw, 2.4rem); margin: 0; text-align: center; }
+        .features-grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+        .feature-card { border-radius: 20px; padding: 22px; background: rgba(255,255,255,0.85); border: 1px solid rgba(15,37,64,0.08); box-shadow: 0 18px 44px -32px rgba(15,37,64,0.28); display: grid; gap: 12px; }
+        .feature-card strong { font-size: 1.05rem; }
+        .feature-card p { margin: 0; color: #46556a; font-size: 0.96rem; }
+        .pricing-band { border-radius: 24px; padding: 32px; background: linear-gradient(120deg, rgba(99,91,255,0.12), rgba(99,91,255,0.22)); display: grid; gap: 12px; text-align: center; border: 1px solid rgba(99,91,255,0.18); }
+        .pricing-band h3 { margin: 0; font-size: 1.4rem; }
+        .pricing-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+        .price-card { padding: 18px; border-radius: 18px; background: rgba(255,255,255,0.88); border: 1px solid rgba(99,91,255,0.16); display: grid; gap: 6px; }
+        .price-card span:first-child { font-weight: 600; color: #0a2540; }
+        .price-card span:last-child { color: #46556a; font-size: 0.9rem; }
+        .order-section { display: grid; gap: 32px; }
+        .order-shell { display: grid; gap: 24px; background: rgba(255,255,255,0.92); border-radius: 24px; padding: 32px; border: 1px solid rgba(15,37,64,0.1); box-shadow: 0 40px 80px -48px rgba(15,37,64,0.35); backdrop-filter: blur(16px); }
+        .order-shell h2 { margin: 0; font-size: clamp(2rem, 2.4vw, 2.4rem); }
+        .order-shell p { margin: 0; color: #46556a; font-size: 1rem; }
+        .form-grid { display: grid; gap: 24px; }
+        form { display: grid; gap: 18px; }
+        label { display: grid; gap: 8px; font-weight: 600; color: #192c54; }
+        input[type="text"], input[type="email"], input[type="file"] { font: inherit; padding: 12px 14px; border: 1px solid rgba(15,37,64,0.12); border-radius: 12px; background: rgba(255,255,255,0.9); }
         input[type="file"] { padding: 6px; }
+        fieldset { border: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+        legend { font-weight: 700; font-size: 1rem; color: #0a2540; }
         .styles-grid { display: grid; gap: 12px; }
         @media (min-width: 640px) { .styles-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-        .style-card { display: flex; align-items: flex-start; gap: 10px; padding: 12px; border: 1px solid #d7e0eb; border-radius: 12px; background: #fdfdff; transition: border 0.15s ease, box-shadow 0.15s ease; }
-        .style-card:hover { border-color: #635bff; box-shadow: 0 8px 24px rgba(99,91,255,0.12); }
+        .style-card { display: flex; align-items: flex-start; gap: 12px; padding: 14px; border: 1px solid rgba(15,37,64,0.1); border-radius: 16px; background: rgba(248,249,255,0.9); transition: border 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease; }
+        .style-card:hover { border-color: rgba(99,91,255,0.65); box-shadow: 0 24px 48px -36px rgba(99,91,255,0.65); transform: translateY(-1px); }
         .style-card input { margin-top: 4px; }
-        .style-card span { display: block; font-weight: 500; }
-        .style-description { display: block; font-weight: 400; color: #62718b; font-size: 0.9rem; margin-top: 4px; }
+        .style-card span { display: block; }
+        .style-card span:first-child { font-weight: 600; color: #192c54; }
+        .style-description { font-weight: 400; color: #4d5d80; font-size: 0.92rem; margin-top: 4px; }
         .delivery-options { display: grid; gap: 12px; }
-        .delivery-card { display: flex; align-items: center; gap: 10px; padding: 12px; border: 1px solid #d7e0eb; border-radius: 12px; background: #fdfdff; }
-        .delivery-card strong { display: block; font-weight: 600; }
-        .delivery-card span { color: #62718b; font-size: 0.9rem; }
-        button { font: inherit; font-weight: 600; padding: 12px 16px; border-radius: 999px; border: none; cursor: pointer; background: #635bff; color: #fff; transition: background 0.15s ease, transform 0.15s ease; }
-        button:hover { background: #5046e4; transform: translateY(-1px); }
-        button:disabled { opacity: .6; cursor: not-allowed; transform: none; }
-        #status { min-height: 24px; color: #e44c4c; }
+        @media (min-width: 640px) { .delivery-options { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+        .delivery-card { display: flex; gap: 12px; align-items: center; padding: 16px; border-radius: 16px; border: 1px solid rgba(15,37,64,0.1); background: rgba(249,250,255,0.95); transition: border 0.15s ease, box-shadow 0.15s ease; }
+        .delivery-card:hover { border-color: rgba(34,197,94,0.5); box-shadow: 0 20px 48px -36px rgba(34,197,94,0.35); }
+        .delivery-card strong { font-size: 1rem; color: #0a2540; }
+        .delivery-card span { color: #4d5d80; font-size: 0.92rem; }
+        small.helper { color: #6a7a98; font-weight: 500; }
+        #order-summary { border-radius: 18px; padding: 18px; border: 1px dashed rgba(99,91,255,0.3); background: rgba(241,243,255,0.7); display: grid; gap: 6px; font-size: 0.95rem; color: #1f2d50; }
+        #order-summary span { display: block; }
+        #summary-total { font-weight: 700; font-size: 1.05rem; }
+        button { font: inherit; font-weight: 600; padding: 14px 20px; border-radius: 999px; border: none; cursor: pointer; background: linear-gradient(120deg, #635bff, #22c55e); color: #fff; transition: transform 0.15s ease, box-shadow 0.15s ease; }
+        button:hover { transform: translateY(-1px); box-shadow: 0 22px 46px -32px rgba(99,91,255,0.75); }
+        button:disabled { opacity: .6; cursor: not-allowed; transform: none; box-shadow: none; }
+        #status { min-height: 24px; color: #e44c4c; font-weight: 600; }
         #status.success { color: #0a8340; }
-        #image-preview { width: 100%; max-height: 240px; object-fit: contain; border-radius: 12px; border: 1px dashed #cfd7df; padding: 8px; display: none; background: #fafcff; }
-        small.helper { color: #7a8da3; font-weight: 400; }
+        #image-preview { width: 100%; max-height: 260px; object-fit: cover; border-radius: 16px; border: 1px dashed rgba(99,91,255,0.3); padding: 8px; display: none; background: rgba(246,248,255,0.9); }
+        footer { text-align: center; color: #5a6a8c; font-size: 0.9rem; }
+        footer a { color: #4d5dff; }
+        @media (max-width: 720px) {
+          main { padding: 48px 20px 96px; gap: 56px; }
+          .hero-preview { padding: 24px; }
+          .order-shell { padding: 24px; }
+        }
       </style>
     </head>
     <body>
       <main>
-        <h1>Create a Royal Pet Portrait</h1>
-        <p class="lede">Tell us who you are and select your favorite photo of your pet. We'll collect payment via Stripe and then turn the photo into a majestic royal portrait with a little help from OpenAI.</p>
-        <form id="order-form">
-          <label>
-            First name
-            <input type="text" name="firstName" id="first-name" autocomplete="given-name" required />
-          </label>
-          <label>
-            Last name
-            <input type="text" name="lastName" id="last-name" autocomplete="family-name" required />
-          </label>
-          <label>
-            Email address
-            <input type="email" name="email" id="email" autocomplete="email" required />
-          </label>
-          <fieldset>
-            <legend style="font-weight: 600; margin-bottom: 8px;">Choose your portrait styles</legend>
-            <div class="styles-grid">
-              <label class="style-card">
-                <input type="checkbox" name="styles" value="realistic-painted" checked />
-                <div>
-                  <span>Realistic Painted Portrait 🎨</span>
-                  <span class="style-description">Classic oil / acrylic look with museum-grade drama.</span>
-                </div>
-              </label>
-              <label class="style-card">
-                <input type="checkbox" name="styles" value="royal-costume" />
-                <div>
-                  <span>Royal / Costume Portrait 👑</span>
-                  <span class="style-description">Dress your pet like nobility, generals, or iconic heroes.</span>
-                </div>
-              </label>
-              <label class="style-card">
-                <input type="checkbox" name="styles" value="cartoon-pop" />
-                <div>
-                  <span>Cartoon & Pop Art 🐾</span>
-                  <span class="style-description">Bold color blocking, graphic outlines, and pop-art vibes.</span>
-                </div>
-              </label>
-              <label class="style-card">
-                <input type="checkbox" name="styles" value="minimalist-line" />
-                <div>
-                  <span>Minimalist Line Art ✍️</span>
-                  <span class="style-description">Elegant single-line treatment for minimalist interiors.</span>
-                </div>
-              </label>
-              <label class="style-card">
-                <input type="checkbox" name="styles" value="fantasy-whimsical" />
-                <div>
-                  <span>Fantasy & Whimsical 🌌</span>
-                  <span class="style-description">Enchanting scenes that turn pets into legendary heroes.</span>
-                </div>
-              </label>
+        <header>
+          <span style="display:inline-flex; align-items:center; gap:8px; justify-content:center; font-weight:600; color:#4f5d7a; background:rgba(255,255,255,0.6); border:1px solid rgba(99,91,255,0.2); padding:8px 16px; border-radius:999px; width:max-content; margin:0 auto;">Limited beta · AI-crafted pet portraits in under 5 minutes</span>
+          <h1>Elevate your pet into a royal masterpiece</h1>
+          <p>Inspired by Stack Auth’s clean aesthetic, our studio transforms your pet into museum-worthy artwork. Choose the styles you love, pay securely with Stripe, and receive digital or framed keepsakes crafted with OpenAI.</p>
+          <div class="cta-group">
+            <button class="cta-primary" data-scroll-to-form>Start Your Portrait</button>
+            <button class="cta-secondary" data-scroll-to-form>See pricing & styles</button>
+          </div>
+          <div class="hero-preview">
+            <h2>What’s included</h2>
+            <div class="pill-list">
+              <span class="pill">Up to 5 distinct art directions</span>
+              <span class="pill">High-res 1024×1024 PNGs</span>
+              <span class="pill">Ultra-fast AI rendering</span>
+              <span class="pill">Optional framed delivery</span>
+              <span class="pill">Secure Stripe checkout</span>
             </div>
-            <small class="helper">Pick as many as you’d like—we’ll generate each one.</small>
-          </fieldset>
-          <fieldset>
-            <legend style="font-weight: 600; margin-bottom: 8px;">Delivery options</legend>
-            <div class="delivery-options">
-              <label class="delivery-card">
-                <input type="checkbox" name="delivery" value="digital" checked />
-                <div>
-                  <strong>Digital download</strong>
-                  <span>High-res PNG delivered instantly — $4.99 per style.</span>
-                </div>
-              </label>
-              <label class="delivery-card">
-                <input type="checkbox" name="delivery" value="framed" />
-                <div>
-                  <strong>Framed print</strong>
-                  <span>Premium 12"x16" frame shipped to you — $24.99 per style.</span>
-                </div>
-              </label>
+            <p style="margin:0; color:#4b5c7d;">“It felt like ordering from a polished SaaS dashboard, but for pets. The framed version arrived looking like a real gallery piece.” — Casey R.</p>
+          </div>
+        </header>
+
+        <section>
+          <h2 class="section-title">Why pet parents love our studio</h2>
+          <div class="features-grid">
+            <div class="feature-card">
+              <strong>Seamless experience</strong>
+              <p>A single flow inspired by modern dashboards: share your details, pay, upload, and review every style in one place.</p>
             </div>
-            <small class="helper">You can grab the digital download, a framed keepsake, or both.</small>
-          </fieldset>
-          <label>
-            Pet photo
-            <input type="file" name="petImage" id="pet-image" accept="image/*" required />
-            <small class="helper">We'll upload this after checkout to make your portrait.</small>
-          </label>
-          <img id="image-preview" alt="Selected pet preview" />
-          <button type="submit" id="submit">Continue to secure payment</button>
-          <div id="status" role="alert"></div>
-        </form>
+            <div class="feature-card">
+              <strong>Styles that resonate</strong>
+              <p>From royal regalia to minimalist line art, each preset has handcrafted prompt engineering to deliver consistent magic.</p>
+            </div>
+            <div class="feature-card">
+              <strong>Flexible delivery</strong>
+              <p>Instant digital downloads for just $4.99 per style, plus premium framed prints shipped to your door for $24.99 per style.</p>
+            </div>
+            <div class="feature-card">
+              <strong>Fast, secure checkout</strong>
+              <p>Built on Stripe Checkout with retry protection and webhook validation, so your payment is safe and smooth.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="pricing-band">
+          <h3>Transparent pricing that scales with your imagination</h3>
+          <p style="margin:0; color:#16294f;">Select as many styles as you want—each one is rendered separately so you can download or frame favorites.</p>
+          <div class="pricing-grid">
+            <div class="price-card">
+              <span>Digital download</span>
+              <span>$4.99 per style · Instant PNG delivery</span>
+            </div>
+            <div class="price-card">
+              <span>Framed print</span>
+              <span>$24.99 per style · 12"×16" gallery frame</span>
+            </div>
+            <div class="price-card">
+              <span>Style expansion</span>
+              <span>Realistic, royal, pop-art, minimalist, and fantasy presets included</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="order-section" id="order">
+          <div class="order-shell">
+            <div style="display:grid; gap:12px;">
+              <h2>Your portrait request</h2>
+              <p>Tell us who we’re creating for, choose every art direction you want, and decide whether you’d like digital files, framed keepsakes, or both. You’ll upload the photo after checkout.</p>
+            </div>
+            <div class="form-grid">
+              <div id="order-summary" hidden>
+                <span id="summary-styles"></span>
+                <span id="summary-delivery"></span>
+                <span id="summary-total"></span>
+              </div>
+              <form id="order-form">
+                <label>
+                  First name
+                  <input type="text" name="firstName" id="first-name" autocomplete="given-name" required />
+                </label>
+                <label>
+                  Last name
+                  <input type="text" name="lastName" id="last-name" autocomplete="family-name" required />
+                </label>
+                <label>
+                  Email address
+                  <input type="email" name="email" id="email" autocomplete="email" required />
+                </label>
+                <fieldset>
+                  <legend>Choose your portrait styles</legend>
+                  <div class="styles-grid">
+                    <label class="style-card">
+                      <input type="checkbox" name="styles" value="realistic-painted" checked />
+                      <div>
+                        <span>Realistic Painted Portrait 🎨</span>
+                        <span class="style-description">Classic oil/acrylic realism with dramatic lighting.</span>
+                      </div>
+                    </label>
+                    <label class="style-card">
+                      <input type="checkbox" name="styles" value="royal-costume" />
+                      <div>
+                        <span>Royal / Costume Portrait 👑</span>
+                        <span class="style-description">Dress your pet like a ruler, general, or folk hero.</span>
+                      </div>
+                    </label>
+                    <label class="style-card">
+                      <input type="checkbox" name="styles" value="cartoon-pop" />
+                      <div>
+                        <span>Cartoon & Pop Art 🐾</span>
+                        <span class="style-description">Bold colors, comic outlines, and vibrant energy.</span>
+                      </div>
+                    </label>
+                    <label class="style-card">
+                      <input type="checkbox" name="styles" value="minimalist-line" />
+                      <div>
+                        <span>Minimalist Line Art ✍️</span>
+                        <span class="style-description">Elegant single-line illustration for modern spaces.</span>
+                      </div>
+                    </label>
+                    <label class="style-card">
+                      <input type="checkbox" name="styles" value="fantasy-whimsical" />
+                      <div>
+                        <span>Fantasy & Whimsical 🌌</span>
+                        <span class="style-description">Magical settings that turn pets into legends.</span>
+                      </div>
+                    </label>
+                  </div>
+                  <small class="helper">Pick as many as you’d like—we’ll render each one separately.</small>
+                </fieldset>
+                <fieldset>
+                  <legend>Delivery options</legend>
+                  <div class="delivery-options">
+                    <label class="delivery-card">
+                      <input type="checkbox" name="delivery" value="digital" checked />
+                      <div>
+                        <strong>Digital download</strong>
+                        <span>High-res PNG delivered instantly — $4.99 per style.</span>
+                      </div>
+                    </label>
+                    <label class="delivery-card">
+                      <input type="checkbox" name="delivery" value="framed" />
+                      <div>
+                        <strong>Framed print</strong>
+                        <span>Premium 12"×16" frame shipped to you — $24.99 per style.</span>
+                      </div>
+                    </label>
+                  </div>
+                  <small class="helper">Choose one or both options—pricing scales with your style count.</small>
+                </fieldset>
+                <label>
+                  Pet photo
+                  <input type="file" name="petImage" id="pet-image" accept="image/*" required />
+                  <small class="helper">We’ll upload it after payment so you can confirm or swap the image.</small>
+                </label>
+                <img id="image-preview" alt="Selected pet preview" />
+                <button type="submit" id="submit">Continue to secure payment</button>
+                <div id="status" role="alert"></div>
+              </form>
+            </div>
+          </div>
+        </section>
+
+        <footer>
+          Built with ❤️ using Stripe Checkout, OpenAI Images, and Cloudflare Workers · © ${new Date().getFullYear()} Royal Pet Portrait Studio
+        </footer>
       </main>
       <script>
         (function() {
+          const DIGITAL_PRICE_CENTS = ${DIGITAL_PRICE_CENTS};
+          const FRAMED_PRICE_CENTS = ${FRAMED_PRICE_CENTS};
           const form = document.getElementById('order-form');
           const status = document.getElementById('status');
           const fileInput = document.getElementById('pet-image');
@@ -252,7 +377,19 @@ app.get("/", (context) => {
           const deliveryInputs = Array.from(form.querySelectorAll('input[name="delivery"]'));
           const preview = document.getElementById('image-preview');
           const submitBtn = document.getElementById('submit');
+          const summaryCard = document.getElementById('order-summary');
+          const summaryStyles = document.getElementById('summary-styles');
+          const summaryDelivery = document.getElementById('summary-delivery');
+          const summaryTotal = document.getElementById('summary-total');
+          const ctaButtons = Array.from(document.querySelectorAll('[data-scroll-to-form]'));
           const STORAGE_KEY = 'royal-pet-portrait';
+
+          ctaButtons.forEach((btn) => {
+            btn.addEventListener('click', (event) => {
+              event.preventDefault();
+              document.getElementById('order').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+          });
 
           function showError(message) {
             status.textContent = message;
@@ -273,6 +410,50 @@ app.get("/", (context) => {
             });
           }
 
+          function getSelectedStyles() {
+            return styleInputs.filter((input) => input.checked).map((input) => input.value);
+          }
+
+          function getSelectedDelivery() {
+            return deliveryInputs.filter((input) => input.checked).map((input) => input.value);
+          }
+
+          function formatCurrency(cents) {
+            return '$' + (cents / 100).toFixed(2);
+          }
+
+          function updateSummary() {
+            const styles = getSelectedStyles();
+            const delivery = getSelectedDelivery();
+            if (!styles.length) {
+              summaryCard.hidden = true;
+              return;
+            }
+            summaryCard.hidden = false;
+            const styleLabels = styles.map((value) => {
+              const label = form.querySelector('input[name="styles"][value="' + value + '"] + div span:first-child');
+              return label ? label.textContent : value;
+            });
+            summaryStyles.textContent = 'Styles: ' + styleLabels.join(', ');
+            if (delivery.length) {
+              const deliveryLabels = delivery.map((value) => {
+                const node = form.querySelector('input[name="delivery"][value="' + value + '"] + div strong');
+                return node ? node.textContent : value;
+              });
+              summaryDelivery.textContent = 'Delivery: ' + deliveryLabels.join(' · ');
+              summaryDelivery.style.display = 'block';
+              const total = (delivery.includes('digital') ? DIGITAL_PRICE_CENTS * styles.length : 0)
+                + (delivery.includes('framed') ? FRAMED_PRICE_CENTS * styles.length : 0);
+              summaryTotal.textContent = 'Estimated total: ' + formatCurrency(total);
+            } else {
+              summaryDelivery.style.display = 'none';
+              summaryTotal.textContent = 'Select a delivery option to preview pricing.';
+            }
+          }
+
+          styleInputs.forEach((input) => input.addEventListener('change', updateSummary));
+          deliveryInputs.forEach((input) => input.addEventListener('change', updateSummary));
+
           async function handleSubmit(event) {
             event.preventDefault();
             status.textContent = '';
@@ -282,8 +463,8 @@ app.get("/", (context) => {
             const lastName = form.lastName.value.trim();
             const email = form.email.value.trim();
             const file = fileInput.files[0];
-            const selectedStyles = styleInputs.filter((input) => input.checked).map((input) => input.value);
-            const selectedDelivery = deliveryInputs.filter((input) => input.checked).map((input) => input.value);
+            const selectedStyles = getSelectedStyles();
+            const selectedDelivery = getSelectedDelivery();
 
             if (!firstName || !lastName || !email) {
               showError('Please fill out your contact information.');
@@ -291,13 +472,13 @@ app.get("/", (context) => {
               return;
             }
 
-            if (selectedStyles.length === 0) {
+            if (!selectedStyles.length) {
               showError('Pick at least one portrait style.');
               submitBtn.disabled = false;
               return;
             }
 
-            if (selectedDelivery.length === 0) {
+            if (!selectedDelivery.length) {
               showError('Select at least one delivery option.');
               submitBtn.disabled = false;
               return;
@@ -364,6 +545,7 @@ app.get("/", (context) => {
           });
 
           form.addEventListener('submit', handleSubmit);
+          updateSummary();
         })();
       </script>
     </body>
@@ -371,6 +553,7 @@ app.get("/", (context) => {
 
   return context.html(html);
 });
+
 
 app.get("/success", (context) => {
   const html = `<!DOCTYPE html>
