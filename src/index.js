@@ -502,7 +502,24 @@ app.get("/", (context) => {
                 styles: selectedStyles,
                 delivery: selectedDelivery,
               };
-              sessionStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+              let photoCached = true;
+              try {
+                sessionStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+              } catch (storageError) {
+                console.warn('Unable to cache full order payload', storageError);
+                photoCached = false;
+                const fallbackPayload = {
+                  ...payload,
+                  imageData: null,
+                  imageTooLarge: true,
+                };
+                try {
+                  sessionStorage.setItem(STORAGE_KEY, JSON.stringify(fallbackPayload));
+                } catch (secondaryError) {
+                  console.warn('Unable to cache fallback order payload', secondaryError);
+                }
+                showError('Large photo detected — we’ll ask you to upload it again after checkout.');
+              }
 
               const response = await fetch('/api/create-checkout-session', {
                 method: 'POST',
@@ -518,7 +535,11 @@ app.get("/", (context) => {
               }
 
               const { url } = await response.json();
-              showSuccess('Redirecting to Stripe Checkout…');
+              if (!photoCached) {
+                showSuccess('Redirecting to Stripe Checkout… we’ll prompt you to re-upload the photo after payment.');
+              } else {
+                showSuccess('Redirecting to Stripe Checkout…');
+              }
               window.location.assign(url);
             } catch (error) {
               console.error(error);
@@ -889,7 +910,11 @@ app.get("/success", (context) => {
                 hasPreviewImage = true;
               }
 
-              status.textContent = 'Payment confirmed. Upload (or confirm) your pet photo to continue.';
+              let confirmationMessage = 'Payment confirmed. Upload (or confirm) your pet photo to continue.';
+              if (storedData && storedData.imageTooLarge) {
+                confirmationMessage = 'Payment confirmed. Please upload your pet photo again so we can transform it—larger files aren\'t cached automatically.';
+              }
+              status.textContent = confirmationMessage;
               status.classList.add('success');
               status.classList.remove('error');
               form.hidden = false;
