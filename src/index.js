@@ -5,6 +5,31 @@ import OpenAI from "openai";
 
 const app = new Hono();
 
+const PORTRAIT_STYLES = {
+  "realistic-painted": {
+    label: "Realistic Painted Portrait 🎨",
+    prompt: "Transform this pet photo into a grand oil painting on canvas. Use rich, painterly brush strokes, dramatic lighting, and luxurious fabrics. Keep the pet's likeness highly realistic and regal, with a timeless background inspired by classic portrait studios.",
+  },
+  "royal-costume": {
+    label: "Royal / Costume Portrait 👑",
+    prompt: "Dress this pet in an ornate royal costume—think crowns, epaulettes, embroidered cloaks, or historical uniforms. Pose them like aristocracy in a grand hall. Preserve the pet's face and expression while emphasizing playful royal details.",
+  },
+  "cartoon-pop": {
+    label: "Cartoon & Pop Art 🐾",
+    prompt: "Illustrate this pet as a vibrant cartoon or pop-art icon. Use bold outlines, saturated colors, and graphic shapes reminiscent of modern comic panels or Warhol prints. Maintain the pet's recognizable features while giving it energetic, stylized flair.",
+  },
+  "minimalist-line": {
+    label: "Minimalist Line Art ✍️",
+    prompt: "Convert this pet photo into elegant minimalist line art. Use clean, continuous lines or delicate contours set against a neutral background. Focus on silhouette and key details so the pet remains instantly identifiable while keeping the composition airy and modern.",
+  },
+  "fantasy-whimsical": {
+    label: "Fantasy & Whimsical 🌌",
+    prompt: "Reimagine this pet as a whimsical fantasy hero. Place them in a magical environment—think starlit skies, enchanted forests, or celestial scenes—and add imaginative wardrobe or props. Keep the pet's face true to life while amplifying the dreamy atmosphere.",
+  },
+};
+
+const DEFAULT_PORTRAIT_STYLE = "realistic-painted";
+
 /**
  * Global middleware: configure Stripe and OpenAI clients per-request.
  */
@@ -51,7 +76,7 @@ app.get("/", (context) => {
         p.lede { margin-top: 0; margin-bottom: 24px; font-size: 1.05rem; color: #465870; }
         form { display: grid; gap: 16px; background: #fff; padding: 24px; border-radius: 16px; box-shadow: 0 24px 48px rgba(10,37,64,0.08); }
         label { display: grid; gap: 8px; font-weight: 600; }
-        input[type="text"], input[type="email"], input[type="file"] { font: inherit; padding: 10px 12px; border: 1px solid #cfd7df; border-radius: 8px; }
+        input[type="text"], input[type="email"], input[type="file"], select { font: inherit; padding: 10px 12px; border: 1px solid #cfd7df; border-radius: 8px; }
         input[type="file"] { padding: 6px; }
         button { font: inherit; font-weight: 600; padding: 12px 16px; border-radius: 999px; border: none; cursor: pointer; background: #635bff; color: #fff; transition: background 0.15s ease, transform 0.15s ease; }
         button:hover { background: #5046e4; transform: translateY(-1px); }
@@ -80,6 +105,17 @@ app.get("/", (context) => {
             <input type="email" name="email" id="email" autocomplete="email" required />
           </label>
           <label>
+            Portrait style
+            <select name="style" id="style" required>
+              <option value="realistic-painted" selected>Realistic Painted Portrait 🎨</option>
+              <option value="royal-costume">Royal / Costume Portrait 👑</option>
+              <option value="cartoon-pop">Cartoon & Pop Art 🐾</option>
+              <option value="minimalist-line">Minimalist Line Art ✍️</option>
+              <option value="fantasy-whimsical">Fantasy & Whimsical 🌌</option>
+            </select>
+            <small class="helper">Pick the vibe that fits your pet's personality.</small>
+          </label>
+          <label>
             Pet photo
             <input type="file" name="petImage" id="pet-image" accept="image/*" required />
             <small class="helper">We'll upload this after checkout to make your portrait.</small>
@@ -94,6 +130,7 @@ app.get("/", (context) => {
           const form = document.getElementById('order-form');
           const status = document.getElementById('status');
           const fileInput = document.getElementById('pet-image');
+          const styleSelect = document.getElementById('style');
           const preview = document.getElementById('image-preview');
           const submitBtn = document.getElementById('submit');
           const STORAGE_KEY = 'royal-pet-portrait';
@@ -126,9 +163,16 @@ app.get("/", (context) => {
             const lastName = form.lastName.value.trim();
             const email = form.email.value.trim();
             const file = fileInput.files[0];
+            const style = styleSelect.value;
 
             if (!firstName || !lastName || !email) {
               showError('Please fill out your contact information.');
+              submitBtn.disabled = false;
+              return;
+            }
+
+            if (!style) {
+              showError('Please choose your preferred portrait style.');
               submitBtn.disabled = false;
               return;
             }
@@ -148,6 +192,7 @@ app.get("/", (context) => {
                 fileName: file.name,
                 fileType: file.type,
                 imageData,
+                style,
               };
               sessionStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
 
@@ -156,7 +201,7 @@ app.get("/", (context) => {
                 headers: {
                   'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ firstName, lastName, email }),
+                body: JSON.stringify({ firstName, lastName, email, style }),
               });
 
               if (!response.ok) {
@@ -215,7 +260,7 @@ app.get("/success", (context) => {
         p { margin-top: 0; color: #465870; }
         form { display: grid; gap: 16px; background: #fff; padding: 24px; border-radius: 16px; box-shadow: 0 24px 48px rgba(10,37,64,0.08); margin-top: 24px; }
         label { display: grid; gap: 8px; font-weight: 600; }
-        input[type="file"] { font: inherit; padding: 6px; border: 1px solid #cfd7df; border-radius: 8px; }
+        input[type="file"], select { font: inherit; padding: 6px; border: 1px solid #cfd7df; border-radius: 8px; }
         button { font: inherit; font-weight: 600; padding: 12px 16px; border-radius: 999px; border: none; cursor: pointer; background: #635bff; color: #fff; transition: background 0.15s ease, transform 0.15s ease; }
         button:hover { background: #5046e4; transform: translateY(-1px); }
         button:disabled { opacity: .6; cursor: not-allowed; transform: none; }
@@ -233,11 +278,23 @@ app.get("/success", (context) => {
         <h1>Payment confirmed 🎉</h1>
         <p>Upload your pet's photo below and we'll generate a royal portrait just for you.</p>
         <section id="status" role="status">Verifying your payment with Stripe…</section>
+        <p id="style-summary" hidden></p>
         <form id="upload-form" hidden>
           <input type="hidden" name="sessionId" id="session-id" />
           <input type="hidden" name="email" id="email" />
           <input type="hidden" name="firstName" id="first-name" />
           <input type="hidden" name="lastName" id="last-name" />
+          <label>
+            Portrait style
+            <select name="style" id="style" required>
+              <option value="realistic-painted">Realistic Painted Portrait 🎨</option>
+              <option value="royal-costume">Royal / Costume Portrait 👑</option>
+              <option value="cartoon-pop">Cartoon & Pop Art 🐾</option>
+              <option value="minimalist-line">Minimalist Line Art ✍️</option>
+              <option value="fantasy-whimsical">Fantasy & Whimsical 🌌</option>
+            </select>
+            <small>Feel free to tweak your style before we generate.</small>
+          </label>
           <label>
             Pet photo
             <input type="file" name="petImage" id="pet-image" accept="image/*" />
@@ -262,13 +319,60 @@ app.get("/success", (context) => {
           const emailInput = document.getElementById('email');
           const firstNameInput = document.getElementById('first-name');
           const lastNameInput = document.getElementById('last-name');
+          const styleSelect = document.getElementById('style');
           const fileInput = document.getElementById('pet-image');
           const preview = document.getElementById('preview');
           const generateBtn = document.getElementById('generate');
           const resultContainer = document.getElementById('result');
           const resultImage = document.getElementById('result-image');
           const downloadLink = document.getElementById('download');
+          const styleSummary = document.getElementById('style-summary');
           const STORAGE_KEY = 'royal-pet-portrait';
+          const STYLE_OPTIONS = {
+            'realistic-painted': {
+              label: 'Realistic Painted Portrait 🎨',
+              description: 'Oil and acrylic inspired realism with regal lighting and rich textures.',
+            },
+            'royal-costume': {
+              label: 'Royal / Costume Portrait 👑',
+              description: 'Outfit your pet like royalty or a legendary hero with ornate costumes.',
+            },
+            'cartoon-pop': {
+              label: 'Cartoon & Pop Art 🐾',
+              description: 'Bold outlines and vibrant pop-art energy for a playful statement piece.',
+            },
+            'minimalist-line': {
+              label: 'Minimalist Line Art ✍️',
+              description: 'Elegant single-line art that pairs with clean, modern home décor.',
+            },
+            'fantasy-whimsical': {
+              label: 'Fantasy & Whimsical 🌌',
+              description: 'Dreamy, imaginative scenes that turn your pet into a magical legend.',
+            },
+          };
+          const DEFAULT_STYLE = 'realistic-painted';
+
+          let storedData = null;
+          const storedRaw = sessionStorage.getItem(STORAGE_KEY);
+          if (storedRaw) {
+            try {
+              storedData = JSON.parse(storedRaw);
+            } catch (error) {
+              console.warn('Unable to restore stored order', error);
+            }
+          }
+
+          function applyStyle(value) {
+            const selected = STYLE_OPTIONS[value] ? value : DEFAULT_STYLE;
+            styleSelect.value = selected;
+            const data = STYLE_OPTIONS[selected];
+            if (data) {
+              styleSummary.hidden = false;
+              styleSummary.textContent = data.label + ' – ' + data.description;
+            } else {
+              styleSummary.hidden = true;
+            }
+          }
 
           if (!sessionId) {
             status.textContent = 'Missing checkout session ID. Please contact support.';
@@ -312,18 +416,16 @@ app.get("/success", (context) => {
               firstNameInput.value = payload.firstName || '';
               lastNameInput.value = payload.lastName || '';
 
-              const stored = sessionStorage.getItem(STORAGE_KEY);
-              if (stored) {
-                try {
-                  const parsed = JSON.parse(stored);
-                  if (parsed.imageData) {
-                    preview.src = parsed.imageData;
-                    preview.style.display = 'block';
-                    generateBtn.disabled = false;
-                  }
-                } catch (error) {
-                  console.warn('Unable to restore stored image', error);
-                }
+              const resolvedStyle = payload.style || (storedData && storedData.style) || DEFAULT_STYLE;
+              applyStyle(resolvedStyle);
+              if (storedData) {
+                storedData.style = resolvedStyle;
+              }
+
+              if (storedData && storedData.imageData) {
+                preview.src = storedData.imageData;
+                preview.style.display = 'block';
+                generateBtn.disabled = false;
               }
 
               status.textContent = 'Payment confirmed. Upload (or confirm) your pet photo to continue.';
@@ -337,6 +439,11 @@ app.get("/success", (context) => {
               showError(error.message || 'Unable to verify payment.');
             }
           }
+
+          applyStyle((storedData && storedData.style) || DEFAULT_STYLE);
+          styleSelect.addEventListener('change', () => {
+            applyStyle(styleSelect.value);
+          });
 
           fileInput.addEventListener('change', async () => {
             const file = fileInput.files[0];
@@ -359,17 +466,14 @@ app.get("/success", (context) => {
             generateBtn.disabled = true;
 
             const formData = new FormData(form);
+            formData.set('style', styleSelect.value || DEFAULT_STYLE);
             let file = formData.get('petImage');
 
             if (!file || (file instanceof File && file.size === 0)) {
-              const stored = sessionStorage.getItem(STORAGE_KEY);
-              if (stored) {
+              if (storedData && storedData.imageData) {
                 try {
-                  const parsed = JSON.parse(stored);
-                  if (parsed.imageData) {
-                    file = await dataURLToFile(parsed.imageData, parsed.fileName);
-                    formData.set('petImage', file);
-                  }
+                  file = await dataURLToFile(storedData.imageData, storedData.fileName);
+                  formData.set('petImage', file);
                 } catch (error) {
                   console.warn('Unable to restore stored image', error);
                 }
@@ -429,6 +533,8 @@ app.post("/api/create-checkout-session", async (context) => {
   const firstName = typeof payload.firstName === "string" ? payload.firstName.trim() : "";
   const lastName = typeof payload.lastName === "string" ? payload.lastName.trim() : "";
   const email = typeof payload.email === "string" ? payload.email.trim() : "";
+  const styleInput = typeof payload.style === "string" ? payload.style : "";
+  const portraitStyle = PORTRAIT_STYLES[styleInput] ? styleInput : DEFAULT_PORTRAIT_STYLE;
 
   if (!firstName || !lastName || !email) {
     return context.json({ message: "Missing required customer information." }, 400);
@@ -443,6 +549,8 @@ app.post("/api/create-checkout-session", async (context) => {
       metadata: {
         firstName,
         lastName,
+        style: portraitStyle,
+        styleLabel: PORTRAIT_STYLES[portraitStyle]?.label ?? portraitStyle,
       },
       line_items: [
         {
@@ -485,6 +593,8 @@ app.get("/api/session-status", async (context) => {
       email: session.customer_details && session.customer_details.email,
       firstName: session.metadata && session.metadata.firstName,
       lastName: session.metadata && session.metadata.lastName,
+      style: session.metadata && session.metadata.style,
+      styleLabel: session.metadata && session.metadata.styleLabel,
     });
   } catch (error) {
     console.error("Stripe session retrieve error", error);
@@ -513,6 +623,7 @@ app.post("/api/generate-portrait", async (context) => {
   const firstName = typeof formData.firstName === "string" ? formData.firstName : "";
   const lastName = typeof formData.lastName === "string" ? formData.lastName : "";
   const petImage = formData.petImage;
+  const styleInput = typeof formData.style === "string" ? formData.style : "";
 
   if (!sessionId || !email || !petImage) {
     return context.json({ message: "Missing required form data." }, 400);
@@ -532,8 +643,18 @@ app.post("/api/generate-portrait", async (context) => {
       return context.json({ message: "Session email does not match the submitted email." }, 400);
     }
 
+    let style = PORTRAIT_STYLES[styleInput] ? styleInput : undefined;
+    if (!style && session.metadata?.style && PORTRAIT_STYLES[session.metadata.style]) {
+      style = session.metadata.style;
+    }
+    if (!style) {
+      style = DEFAULT_PORTRAIT_STYLE;
+    }
+
     const persona = `${firstName || session.metadata?.firstName || ''} ${lastName || session.metadata?.lastName || ''}`.trim();
-    const prompt = `Transform this pet photo into a majestic royal portrait set in a grand palace. Dress the pet in ornate royal attire with rich fabrics, gold accents, and a regal pose. Make sure the likeness of the pet is preserved${persona ? ` and incorporate a name plate that reads \"${persona}\".` : '.'}`;
+    const styleDetails = PORTRAIT_STYLES[style] || PORTRAIT_STYLES[DEFAULT_PORTRAIT_STYLE];
+    const personaLine = persona ? ` Include a tasteful name plaque or inscription that reads \"${persona}\".` : "";
+    const prompt = `${styleDetails.prompt} Use the provided pet photo strictly as a reference so the face, markings, and colors stay accurate.${personaLine}`;
 
     const response = await openai.images.edit({
       model: "gpt-image-1",

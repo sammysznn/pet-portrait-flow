@@ -1,4 +1,5 @@
 name = "my-stripe-worker"
+account_id = "9328bf67cb98989069013c1ccde5f512"
 main = "src/index.js"
 compatibility_date = "2023-01-01"
 compatibility_flags = ["nodejs_compat"]
