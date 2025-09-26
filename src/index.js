@@ -720,6 +720,12 @@ app.get("/success", (context) => {
           let selectedDelivery = [];
           let hasPreviewImage = false;
 
+          // Ensure the results panel starts hidden each visit.
+          if (resultContainer) {
+            resultContainer.hidden = true;
+            resultGrid.innerHTML = '';
+          }
+
           const presetStyles = normalizeStyles(storedData && storedData.styles);
           presetStyles.forEach((style) => selectedStyles.add(style));
           if (selectedStyles.size === 0) {
@@ -729,6 +735,12 @@ app.get("/success", (context) => {
           selectedDelivery = normalizeDelivery(storedData && storedData.delivery);
           if (!selectedDelivery.length) {
             selectedDelivery = ['digital'];
+          }
+
+          hasPreviewImage = Boolean(storedData && storedData.imageData);
+          if (hasPreviewImage && storedData && storedData.imageData) {
+            preview.src = storedData.imageData;
+            preview.style.display = 'block';
           }
 
           function normalizeStyles(value) {
@@ -898,21 +910,28 @@ app.get("/success", (context) => {
               combinedStyles.forEach((style) => selectedStyles.add(style));
               renderStyleGrid();
               updateStyleSummary();
+              updateSummary();
 
               const deliveryFromSession = normalizeDelivery(payload.delivery);
               const deliveryFromStorage = normalizeDelivery(storedData && storedData.delivery);
               selectedDelivery = deliveryFromSession.length ? deliveryFromSession : (deliveryFromStorage.length ? deliveryFromStorage : ['digital']);
               updateDeliverySummary();
+              updateSummary();
 
               if (storedData && storedData.imageData) {
                 preview.src = storedData.imageData;
                 preview.style.display = 'block';
                 hasPreviewImage = true;
+              } else {
+                hasPreviewImage = false;
               }
 
+              const needsReupload = !storedData || !storedData.imageData;
               let confirmationMessage = 'Payment confirmed. Upload (or confirm) your pet photo to continue.';
               if (storedData && storedData.imageTooLarge) {
                 confirmationMessage = 'Payment confirmed. Please upload your pet photo again so we can transform it—larger files aren\'t cached automatically.';
+              } else if (needsReupload) {
+                confirmationMessage = 'Payment confirmed. Please upload your pet photo to start generating your portraits.';
               }
               status.textContent = confirmationMessage;
               status.classList.add('success');
@@ -920,6 +939,9 @@ app.get("/success", (context) => {
               form.hidden = false;
               sessionStorage.removeItem(STORAGE_KEY);
               updateGenerateState();
+              if (needsReupload) {
+                showError('Upload your pet photo to continue — the image is not cached after checkout.');
+              }
             } catch (error) {
               console.error(error);
               showError(error.message || 'Unable to verify payment.');
@@ -928,6 +950,8 @@ app.get("/success", (context) => {
 
           renderStyleGrid();
           updateStyleSummary();
+          updateDeliverySummary();
+          updateSummary();
           updateGenerateState();
 
           fileInput.addEventListener('change', async () => {
@@ -944,6 +968,7 @@ app.get("/success", (context) => {
               preview.src = reader.result;
               preview.style.display = 'block';
               hasPreviewImage = true;
+              showSuccess('Photo attached. Generate your portraits when ready.');
               updateGenerateState();
             };
             reader.readAsDataURL(file);
