@@ -924,7 +924,13 @@ app.get("/success", (context) => {
                 hasPreviewImage = true;
               } else {
                 hasPreviewImage = false;
+                preview.src = '';
+                preview.style.display = 'none';
               }
+
+              // Reset any previous results when loading a fresh session.
+              resultContainer.hidden = true;
+              resultGrid.innerHTML = '';
 
               const needsReupload = !storedData || !storedData.imageData;
               let confirmationMessage = 'Payment confirmed. Upload (or confirm) your pet photo to continue.';
@@ -1008,12 +1014,14 @@ app.get("/success", (context) => {
               return;
             }
 
+            showSuccess('Generating your portraits… this can take a few moments.');
+            resultContainer.hidden = true;
+            resultGrid.innerHTML = '';
             try {
               const response = await fetch('/api/generate-portrait', {
                 method: 'POST',
                 body: formData,
               });
-
               if (!response.ok) {
                 const error = await response.json().catch(() => ({ message: 'Unable to generate portrait. Please try again.' }));
                 throw new Error(error.message || 'Unable to generate portrait.');
