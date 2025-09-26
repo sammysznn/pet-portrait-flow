@@ -476,6 +476,8 @@ app.get("/success", (context) => {
         #result-grid img { width: 100%; border-radius: 16px; box-shadow: 0 24px 48px rgba(10,37,64,0.12); }
         #result-grid figcaption { font-weight: 600; color: #0a2540; }
         #result-grid a { text-decoration: none; font-weight: 600; color: #635bff; }
+        #upload-reminder { margin: 0; font-size: 0.95rem; color: #e44c4c; font-weight: 600; }
+        #upload-reminder.success { color: #0a8340; }
       </style>
     </head>
     <body>
@@ -501,6 +503,7 @@ app.get("/success", (context) => {
             <small>We saved your original selection. Feel free to replace it.</small>
           </label>
           <img id="preview" alt="Pet preview" />
+          <p id="upload-reminder" hidden></p>
           <button type="submit" id="generate" disabled>Generate portraits</button>
         </form>
         <div id="result" hidden>
@@ -781,10 +784,20 @@ app.get("/success", (context) => {
                 preview.src = storedData.imageData;
                 preview.style.display = 'block';
                 hasPreviewImage = true;
+                if (uploadReminder) {
+                  uploadReminder.hidden = true;
+                  uploadReminder.classList.remove('success');
+                  uploadReminder.textContent = '';
+                }
               } else {
                 hasPreviewImage = false;
                 preview.src = '';
                 preview.style.display = 'none';
+                if (uploadReminder) {
+                  uploadReminder.hidden = false;
+                  uploadReminder.classList.remove('success');
+                  uploadReminder.textContent = 'Upload your pet photo to continue — images aren\'t saved after checkout.';
+                }
               }
 
               // Reset any previous results when loading a fresh session.
@@ -804,9 +817,6 @@ app.get("/success", (context) => {
               form.hidden = false;
               sessionStorage.removeItem(STORAGE_KEY);
               updateGenerateState();
-              if (needsReupload) {
-                showError('Upload your pet photo to continue — the image is not cached after checkout.');
-              }
             } catch (error) {
               console.error(error);
               showError(error.message || 'Unable to verify payment.');
@@ -824,6 +834,11 @@ app.get("/success", (context) => {
               preview.src = '';
               preview.style.display = 'none';
               hasPreviewImage = Boolean(storedData && storedData.imageData);
+              if (uploadReminder) {
+                uploadReminder.hidden = false;
+                uploadReminder.classList.remove('success');
+                uploadReminder.textContent = 'Select the pet photo you want us to transform.';
+              }
               updateGenerateState();
               return;
             }
@@ -832,7 +847,12 @@ app.get("/success", (context) => {
               preview.src = reader.result;
               preview.style.display = 'block';
               hasPreviewImage = true;
-              showSuccess('Photo attached. Generate your portraits when ready.');
+              if (uploadReminder) {
+                uploadReminder.hidden = false;
+                uploadReminder.classList.add('success');
+                uploadReminder.textContent = 'Photo attached. Generate your portraits when you\'re ready.';
+              }
+              status.classList.remove('error');
               updateGenerateState();
             };
             reader.readAsDataURL(file);
@@ -847,7 +867,9 @@ app.get("/success", (context) => {
               return;
             }
 
-            showSuccess('Generating your portraits… this can take a few moments.');
+            status.textContent = 'Generating your portraits… this can take a few moments.';
+            status.classList.remove('error');
+            status.classList.add('success');
             generateBtn.disabled = true;
 
             const formData = new FormData(form);
@@ -872,7 +894,6 @@ app.get("/success", (context) => {
               return;
             }
 
-            showSuccess('Generating your portraits… this can take a few moments.');
             resultContainer.hidden = true;
             resultGrid.innerHTML = '';
             try {
@@ -907,9 +928,19 @@ app.get("/success", (context) => {
 
               resultContainer.hidden = false;
               showSuccess('All done! Your portraits are ready.');
+              if (uploadReminder) {
+                uploadReminder.hidden = true;
+                uploadReminder.textContent = '';
+                uploadReminder.classList.remove('success');
+              }
             } catch (error) {
               console.error(error);
               showError(error.message || 'Something went wrong generating your portraits.');
+              if (uploadReminder) {
+                uploadReminder.hidden = false;
+                uploadReminder.classList.remove('success');
+                uploadReminder.textContent = 'Please try re-uploading your photo and generating again.';
+              }
             } finally {
               generateBtn.disabled = false;
             }
